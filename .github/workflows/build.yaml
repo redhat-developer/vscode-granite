@@ -1,0 +1,46 @@
+# This is a basic workflow
+name: CI
+
+# Triggers the workflow on all pushes or pull requests on the main branch
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest] #FIXME windows-latest fails to run tests
+
+    steps:
+      # Checkout code
+      - uses: actions/checkout@v4
+
+      # Set up pnpm
+      - uses: pnpm/action-setup@v4
+
+      # Set up Node
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      # Run install dependencies
+      - name: Install dependencies
+        run: pnpm install
+
+      # Build extension
+      - name: Run build
+        run: pnpm package
+
+      # Run tests
+      - name: Run Test
+        uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3 #v1.0.1
+        with:
+          run: pnpm test
