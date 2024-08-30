@@ -14,7 +14,7 @@ function handleSetupGraniteClick() {
 }
 function App() {
 
-  const modelOptions: string[] = ['granite-code:3b', 'granite-code:8b', 'granite-code:20b'];
+  const modelOptions: string[] = ['granite-code:3b', 'granite-code:8b', 'granite-code:20b', 'granite-code:34b'];
   const [tabModel, setTabModel] = useState<string>(modelOptions[0]);
   const [chatModel, setChatModel] = useState<string>(modelOptions[2]);
   const [status, setStatus] = useState<string>('Unknown');
