@@ -21,26 +21,22 @@ jobs:
       # Checkout code
       - uses: actions/checkout@v4
 
-      # Set up pnpm
-      - uses: pnpm/action-setup@v4
-
       # Set up Node
       - name: Use Node 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
 
       # Run install dependencies
       - name: Install dependencies
-        run: pnpm install
+        run: npm run install:ci
 
       # Build extension
       - name: Run build
-        run: pnpm package
+        run: npm package
 
       # Run tests
       - name: Run Test
         uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3 #v1.0.1
         with:
-          run: pnpm test
+          run: npm test

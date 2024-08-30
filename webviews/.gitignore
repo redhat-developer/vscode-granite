@@ -1,4 +1,3 @@
-out
 node_modules
 .DS_Store
 dist
@@ -6,5 +5,3 @@ dist-ssr
 build
 build-ssr
 *.local
-.vscode-test/
-*.vsix

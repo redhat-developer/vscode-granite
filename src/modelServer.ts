@@ -5,4 +5,5 @@ export interface IModelServer {
     isModelInstalled(modelName: string): Promise<boolean>;
     installModel(modelName: string): Promise<any>;
     configureAssistant(modelName: string): Promise<void>;
+    listModels(): Promise<string[]>;
 }

@@ -1,16 +1,15 @@
-import path from "path";
+import * as path from "path";
 import { createWriteStream } from "fs";
 import * as fs from "fs/promises";
-import { AiAssistantConfigurationRequest, AiAssistantConfigurator } from "./configureAssistant";
-import { IModelServer } from "./modelServer";
-import { executeCommand } from "./utils/cpUtils";
+import { AiAssistantConfigurationRequest, AiAssistantConfigurator } from "../configureAssistant";
+import { IModelServer } from "../modelServer";
+import { executeCommand } from "../utils/cpUtils";
 import * as os from "os";
 import * as vscode from 'vscode';
 import { Readable } from "stream";
 import extract from "extract-zip";
 
 export class OllamaServer implements IModelServer {
-
     name!: 'Ollama';
 
     async isServerInstalled(): Promise<boolean> {
@@ -122,8 +121,25 @@ export class OllamaServer implements IModelServer {
     }
 
     async isModelInstalled(modelName: string): Promise<boolean> {
+        const models = await this.listModels();
+        return models.includes(modelName);
+    }
+
+    async listModels(): Promise<string[]> {
         const output = await executeCommand('ollama', ['list']);
-        return output.includes(modelName);
+        const lines = output.split('\n');
+        const modelNames: string[] = [];
+        //Skip header line
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            // Skip empty lines
+            if (line === '') {
+                continue;
+            }
+            const modelName = line.split(/\s+/)[0];
+            modelNames.push(modelName);
+        }
+        return modelNames;
     }
 
     async installModel(modelName: string): Promise<any> {
@@ -148,9 +164,9 @@ export class OllamaServer implements IModelServer {
 
 const regex = /pulling\s+[a-f0-9]+\.\.\.\s+(\d+%)/g;
 
-async function sleep(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+// async function sleep(ms: number) {
+//     return new Promise(resolve => setTimeout(resolve, ms));
+// }
 
 
 async function pullModel(modelName: string) {

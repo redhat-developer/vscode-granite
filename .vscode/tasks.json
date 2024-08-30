@@ -7,7 +7,8 @@
             "label": "watch",
             "dependsOn": [
                 "npm: watch:tsc",
-                "npm: watch:esbuild"
+                "npm: watch:esbuild",
+                "npm: watch:webviews"
             ],
             "presentation": {
                 "reveal": "never"
@@ -40,6 +41,41 @@
                 "group": "watch",
                 "reveal": "never"
             }
+        },
+        {
+            "type": "npm",
+            "script": "watch:webviews",
+            "group": "build",
+            "isBackground": true,
+            "label": "npm: watch:webviews",
+            "presentation": {
+                "group": "watch",
+                "reveal": "never"
+            },
+            "problemMatcher": {
+                "applyTo": "allDocuments",
+                "fileLocation":[
+                    "relative",
+                    "${workspaceFolder}"
+                ],
+                "pattern":[
+                    {
+                        "regexp": "^([^\\\\s].*)\\\\((\\\\d+,\\\\d+)\\\\):\\\\s*(.*)$",
+                        "file": 1,
+                        "location": 2,
+                        "message": 3
+                    }
+                ],
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern":{
+                        "regexp": "watching for file changes"
+                    },
+                    "endsPattern":{
+                        "regexp": "build started"
+                    }
+                }
+            },
         },
 		{
 			"type": "npm",

@@ -8,12 +8,12 @@ export async function executeCommand(command: string, args: string[], options: c
     return new Promise((resolve: (res: string) => void, reject: (e: Error) => void): void => {
         let result = "";
         const childProc: cp.ChildProcess = cp.spawn(command, args, options);
-        let killed = false;
+        //let killed = false;
         if (token) {
             token.onCancellationRequested(() => {
                 console.error(`Killing ${command} !!!`);
                 childProc.kill();
-                killed = true;
+                //killed = true;
                 reject(new Error(`Command "${command} ${args.toString()}" was cancelled.`));
             });
         }

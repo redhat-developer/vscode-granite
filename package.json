@@ -2,12 +2,13 @@
   "name": "vscode-granite",
   "displayName": "Granite Code AI-Assistant",
   "description": "Use IBM Granite Code LLM as your Code Assistant",
+  "publisher": "redhat",
   "version": "0.0.1",
   "license": "Apache-2.0",
-  "packageManager": "pnpm@9.5.0",
   "engines": {
-    "vscode": "^1.92.0"
+    "vscode": "^1.88.0"
   },
+  "main": "./dist/extension.js",
   "categories": [
     "AI"
   ],
@@ -17,20 +18,28 @@
   "extensionDependencies": [
     "Continue.continue"
   ],
-  "main": "./dist/extension.js",
   "contributes": {
-    "commands": []
+    "commands": [
+      {
+        "command": "vscode-granite.setup",
+        "category": "Granite",
+        "title": "Setup Granite Code as code assistant"
+      }
+    ]
   },
   "scripts": {
-    "vscode:prepublish": "pnpm run package",
-    "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
+    "install:ci": "npm ci && cd webviews && npm ci",
+    "install:all": "npm install && cd webviews && npm install",
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
+    "watch:webviews": "cd webviews && npm run watch",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production && cd webviews && npm run build",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "check-types": "tsc --noEmit",
     "lint": "eslint src --ext ts",
     "test": "vscode-test"
@@ -38,7 +47,7 @@
   "devDependencies": {
     "@types/mocha": "^10.0.7",
     "@types/node": "20.x",
-    "@types/vscode": "^1.92.0",
+    "@types/vscode": "^1.88.0",
     "@typescript-eslint/eslint-plugin": "^7.14.1",
     "@typescript-eslint/parser": "^7.11.0",
     "@vscode/test-cli": "^0.0.9",
