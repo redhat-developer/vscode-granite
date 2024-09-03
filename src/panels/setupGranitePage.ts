@@ -1,4 +1,4 @@
-import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vscode";
+import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, env } from "vscode";
 import { getUri } from "../utilities/getUri";
 import { getNonce } from "../utilities/getNonce";
 import { IModelServer } from "../modelServer";
@@ -115,7 +115,8 @@ export class SetupGranitePage {
         <head>
           <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+
+          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}'; connect-src http://localhost">
           <link rel="stylesheet" type="text/css" href="${stylesUri}">
           <title>Granite Code</title>
         </head>
@@ -136,22 +137,59 @@ export class SetupGranitePage {
    */
   private _setWebviewMessageListener(webview: Webview) {
     const server = new OllamaServer();
-    let initialized = false;
+    let debounceStatus = 0;
     webview.onDidReceiveMessage(
       async (message: any) => {
         const command = message.command;
         const data = message.data;
+        let ollamaInstalled: boolean | undefined;
         switch (command) {
-          case 'init':
-            // Careful here, we're receiving 2 init messages in Dev mode, because <App> is wrapped with <React.StrictMode>
-            // see https://stackoverflow.com/questions/60618844/react-hooks-useeffect-is-called-twice-even-if-an-empty-array-is-used-as-an-ar
-            if (initialized) {
-              break;
+          case 'installOllama':
+            switch (data.mode) {
+              //TODO handle linux
+              case 'homebrew': {
+                await server.installServer();
+                break;
+              }
+              case 'manually': {
+                env.openExternal(Uri.parse('https://ollama.com/download'));
+                break;
+              }
             }
-            initialized = true;
-            console.log('received init msg');
-            const ollamaInstalled = await server.isServerInstalled();
-            const models =  await server.listModels();
+            break;
+          case 'fetchStatus':
+            const now = new Date().getTime();
+            // Careful here, we're receiving 2 messages in Dev mode on useEffect, because <App> is wrapped with <React.StrictMode>
+            // see https://stackoverflow.com/questions/60618844/react-hooks-useeffect-is-called-twice-even-if-an-empty-array-is-used-as-an-ar
+
+            if (debounceStatus > 0) {
+              const elapsed = now - debounceStatus;
+              if (elapsed < 1000) {
+                console.log("Debouncing fetchStatus :" + elapsed);
+                break;
+              }
+            }
+            debounceStatus = now;
+
+            console.log('Received fetchStatus msg '+debounceStatus);
+            let models: string[];
+            try {
+              models = await server.listModels();
+              ollamaInstalled = true;
+            } catch (e) {
+              //TODO check error response code instead?
+              models = [];
+              if (!ollamaInstalled) {
+                //fall back to checking CLI
+                ollamaInstalled = await server.isServerInstalled();
+                if (ollamaInstalled) {
+                  try {
+                    await server.startServer();
+                    models = await server.listModels();
+                  } catch (e) {}
+                }
+              }
+            }
             //TODO check selected models statuses
             //Respond with configuration status when init command is received
               webview.postMessage({
@@ -200,5 +238,5 @@ async function setupGranite(graniteConfiguration: GraniteConfiguration): Promise
 	} else {
 		await modelServer.installModel(graniteConfiguration.chatModelId);
 	}
-	modelServer.configureAssistant(graniteConfiguration.tabModelId);
+	modelServer.configureAssistant(graniteConfiguration.chatModelId, graniteConfiguration.tabModelId);
 }

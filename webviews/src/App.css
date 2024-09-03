@@ -9,3 +9,32 @@ main {
 .form-group {
   margin: 10px;
 }
+
+.install-options {
+  background-color: #f0f0f0;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 5px;
+}
+
+.install-button {
+  background-color: #a6a6a6;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  margin: 10px 5px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.install-button:hover {
+  background-color: #c9c9c9;
+}
+
+/* Styling for disabled buttons */
+.install-button:disabled {
+  background-color: #ccc; /* Gray background for disabled state */
+  color: #888; /* Light gray text for disabled state */
+  cursor: not-allowed; /* Change cursor to 'not-allowed' */
+  opacity: 0.6; /* Reduce opacity for a disabled look */
+}

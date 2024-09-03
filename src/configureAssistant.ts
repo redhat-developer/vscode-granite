@@ -12,13 +12,13 @@ import * as vscode from 'vscode';
 
 export interface AiAssistantConfigurationRequest {
     metadata: {
-        name: string;
+        chatModelName: string;
+        tabModelName: string;
         inferenceEndpoint?: string;
         provider?: string;
         systemMessage?: string;
         contextLength?: number;
     }
-
 }
 
 interface Model {
@@ -48,8 +48,8 @@ export class AiAssistantConfigurator {
 
     async configureAssistant() {
         const model = {
-            title: this.request.metadata.name,
-            model: this.request.metadata.name,
+            title: this.request.metadata.chatModelName,
+            model: this.request.metadata.chatModelName,
             completionOptions: {},
             apiBase: this.request.metadata.inferenceEndpoint,
             provider: this.request.metadata.provider,
@@ -77,8 +77,8 @@ export class AiAssistantConfigurator {
         }
 
         const tabAutocompleteModel: TabAutocompleteModel = {
-            title: this.request.metadata.name,
-            model: this.request.metadata.name,
+            title: this.request.metadata.tabModelName,
+            model: this.request.metadata.tabModelName,
             provider:this.request.metadata.provider
         };
         if (config.tabAutocompleteModel !== tabAutocompleteModel) {

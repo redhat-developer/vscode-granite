@@ -34,6 +34,7 @@ export async function executeCommand(command: string, args: string[], options: c
         childProc.on("error", reject);
         childProc.on("close", (code: number) => {
             if (code !== 0 || result.indexOf("ERROR") > -1) {
+                console.error(result);
                 reject(new Error(`Command "${command} ${args.toString()}" failed with exit code "${code}".`));
             } else {
                 resolve(result);

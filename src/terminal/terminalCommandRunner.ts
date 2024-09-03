@@ -10,30 +10,48 @@ export interface ITerminalOptions {
     addNewLine?: boolean;
     name: string;
     cwd?: string;
-    env?: { [key: string]: string };
+    env?: { [key: string]: string },
+    show?: boolean;
 }
 
 class TerminalCommandRunner implements Disposable {
     private readonly terminals: { [id: string]: Terminal } = {};
 
     public async runInTerminal(command: string, options: ITerminalOptions): Promise<Terminal> {
-        const defaultOptions = { addNewLine: true };
-        const { addNewLine, name, cwd } = Object.assign(defaultOptions, options);
-        if (this.terminals[name] === undefined) {
-            const env: { [envKey: string]: string } = { ...options.env };
-            this.terminals[name] = window.createTerminal({ name, env });
-            // Workaround for WSL custom envs.
-            // See: https://github.com/Microsoft/vscode/issues/71267
-            if (currentWindowsShell() === WindowsShellType.WSL) {
-                setupEnvForWSL(this.terminals[name], env);
-            }
+
+        let terminal: Terminal | undefined;
+        const name = "Granite Code Setup";
+        if (window.terminals.length) {
+          terminal = window.terminals.find(t => name === t.name);
         }
-        this.terminals[name].show();
-        if (cwd) {
-            this.terminals[name].sendText(await getCDCommand(cwd), true);
+
+        if (!terminal) {
+          terminal = window.createTerminal(name);
         }
-        this.terminals[name].sendText(getCommand(command), addNewLine);
-        return this.terminals[name];
+        //terminal.show();
+        terminal.sendText(command);
+
+        // const defaultOptions = { addNewLine: true, show: true };
+        // const { addNewLine, name, cwd, show } = Object.assign(defaultOptions, options);
+        // let terminal = this.terminals[name];
+        // if (terminal === undefined) {
+        //     const env: { [envKey: string]: string } = { ...options.env };
+        //     terminal = window.createTerminal({ name, env });
+        //     this.terminals[name] = terminal;
+        //     // Workaround for WSL custom envs.
+        //     // See: https://github.com/Microsoft/vscode/issues/71267
+        //     if (currentWindowsShell() === WindowsShellType.WSL) {
+        //         setupEnvForWSL(terminal, env);
+        //     }
+        // }
+        // if (show) {
+        //     terminal.show();
+        // }
+        // if (cwd) {
+        //     terminal.sendText(await getCDCommand(cwd), true);
+        // }
+        // terminal.sendText(getCommand(command), addNewLine);
+        return terminal;
     }
 
     public closeAllTerminals(): void {
