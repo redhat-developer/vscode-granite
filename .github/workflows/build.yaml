@@ -33,10 +33,10 @@ jobs:
 
       # Build extension
       - name: Run build
-        run: npm package
+        run: npm run package
 
       # Run tests
       - name: Run Test
         uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3 #v1.0.1
         with:
-          run: npm test
+          run: npm run test
