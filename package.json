@@ -8,6 +8,9 @@
   "engines": {
     "vscode": "^1.88.0"
   },
+  "repository": {
+    "url": "https://github.com/redhat-developer/vscode-granite"
+  },
   "main": "./dist/extension.js",
   "categories": [
     "AI"

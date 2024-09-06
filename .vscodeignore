@@ -32,3 +32,7 @@ vsc-extension-quickstart.md
 **/*.map
 **/*.ts
 esbuild.js
+node_modules/**
+out/**
+DCO
+.github/**

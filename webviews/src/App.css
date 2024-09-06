@@ -6,8 +6,27 @@ main {
   height: 100%;
 }
 
+h1 {
+  text-align: center;
+}
+
 .form-group {
   margin: 10px;
+}
+
+.form-group label{
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.form-group select{
+  padding: 0 30px 0 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  line-height: 30px;
+  height: 30px;
+  min-width: 40px;
+  margin: 0 5px 5px 0;
 }
 
 .install-options {
@@ -18,22 +37,22 @@ main {
 }
 
 .install-button {
-  background-color: #a6a6a6;
+  background-color: #015fb8;
   color: white;
   border: none;
   padding: 8px 16px;
   margin: 10px 5px;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 2px;
 }
 
 .install-button:hover {
-  background-color: #c9c9c9;
+  background-color: #085ca4
 }
 
 /* Styling for disabled buttons */
 .install-button:disabled {
-  background-color: #ccc; /* Gray background for disabled state */
+  /* background-color: #a1d5f9; Gray background for disabled state */
   color: #888; /* Light gray text for disabled state */
   cursor: not-allowed; /* Change cursor to 'not-allowed' */
   opacity: 0.6; /* Reduce opacity for a disabled look */

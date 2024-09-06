@@ -1,15 +1,34 @@
 import * as fs from "fs/promises";
+import os from "os";
 import {
   AiAssistantConfigurationRequest,
   AiAssistantConfigurator,
 } from "../configureAssistant";
 import { IModelServer } from "../modelServer";
 import { executeCommand } from "../utils/cpUtils";
-import * as vscode from "vscode";
+import {env, ProgressLocation, Uri, window} from "vscode";
 import { terminalCommandRunner } from "../terminal/terminalCommandRunner";
 
+const PLATFORM = os.platform();
+
 export class OllamaServer implements IModelServer {
+
   name!: "Ollama";
+
+  async supportedInstallModes(): Promise<{ id: string; label: string; }[]> {
+    const modes = [];
+    if (await isHomebrewAvailable()) {
+      // homebrew is available
+      modes.push({ id: "homebrew", label: "Install with Homebrew" });
+    }
+    if (await isLinux()) {
+      // on linux
+      modes.push({ id: "script", label: "Install with script" });
+    }
+    modes.push({ id: "manual", label: "Install manually" });
+
+    return modes;
+  }
 
   async isServerInstalled(): Promise<boolean> {
     //check if ollama is installed
@@ -19,6 +38,7 @@ export class OllamaServer implements IModelServer {
       return true;
     } catch (error) {
       console.log("Ollama is NOT installed");
+      console.log(error);
       return false;
     }
   }
@@ -32,26 +52,44 @@ export class OllamaServer implements IModelServer {
     } catch (error) {
       //TODO Check error
       console.log("Ollama server is NOT started");
+      console.log(error);
       return false;
     }
   }
 
   async startServer(): Promise<boolean> {
-    await terminalCommandRunner.runInTerminal("ollama list", {
-      name: "Granite Code Setup",
-      show: true,
-    });
+    // await terminalCommandRunner.runInTerminal("ollama list", {
+    //   name: "Granite Code Setup",
+    //   show: true,
+    // });
     return true;
   }
 
-  async installServer(): Promise<boolean> {
-    await terminalCommandRunner.runInTerminal(
-      "clear && brew install --cask ollama",
-      {
-        name: "Granite Code Setup",
-        show: true,
+  async installServer(mode: string): Promise<boolean> {
+    switch (mode) {
+        case "homebrew":{
+           await terminalCommandRunner.runInTerminal(
+                "clear && brew install --cask ollama && sleep 3 && ollama list", //run ollama list to trigger the ollama daemon
+                {
+                  name: "Granite Code Setup",
+                  show: true,
+                }
+           );
+           return true;
+        }
+      case "script":
+            await terminalCommandRunner.runInTerminal(
+              "clear && curl -fsSL https://ollama.com/install.sh | sh",
+              {
+                name: "Granite Code Setup",
+                show: true,
+              }
+        );
+        return true;
+      case 'manual':
+      default:
+        env.openExternal(Uri.parse('https://ollama.com/download'));
       }
-    );
     return true;
   }
 
@@ -83,7 +121,7 @@ export class OllamaServer implements IModelServer {
       await fetch("http://localhost:11434/v1/models")
     ).json() as any;
     const rawModels = (await json)?.data;
-    const models = rawModels.map((model: any) => model.id);
+    const models = (rawModels)?rawModels.map((model: any) => model.id):[];
     return models;
   }
 
@@ -97,7 +135,6 @@ export class OllamaServer implements IModelServer {
     tabModelName: string
   ): Promise<void> {
     const request = {
-      metadata: {
         chatModelName,
         tabModelName,
         provider: "ollama",
@@ -105,7 +142,6 @@ export class OllamaServer implements IModelServer {
         contextLength: 20000,
         systemMessage:
           "You are Granite Chat, an AI language model developed by IBM. You are a cautious assistant. You carefully follow instructions. You are helpful and harmless and you follow ethical guidelines and promote positive behavior. You always respond to greetings (for example, hi, hello, g'day, morning, afternoon, evening, night, what's up, nice to meet you, sup, etc) with \"Hello! I am Granite Chat, created by IBM. How can I help you today?\". Please do not say anything else and do not start a conversation.",
-      },
     } as AiAssistantConfigurationRequest;
     const assistantConfigurator = new AiAssistantConfigurator(request);
     await assistantConfigurator.configureAssistant();
@@ -114,15 +150,11 @@ export class OllamaServer implements IModelServer {
 
 const regex = /pulling\s+[a-f0-9]+\.\.\.\s+(\d+%)/g;
 
-// async function sleep(ms: number) {
-//     return new Promise(resolve => setTimeout(resolve, ms));
-// }
-
 async function pullModel(modelName: string) {
   //TODO use ollama REST API instead of CLI
-  return vscode.window.withProgress(
+  return window.withProgress(
     {
-      location: vscode.ProgressLocation.Notification,
+      location: ProgressLocation.Notification,
       title: `Installing model '${modelName}'`,
       cancellable: true,
     },
@@ -156,4 +188,20 @@ async function pullModel(modelName: string) {
       }
     }
   );
+}
+
+async function isHomebrewAvailable(): Promise<boolean> {
+  if (isWin()) { //TODO Would that be an issue on WSL2?
+    return false;
+  }
+  const result = await executeCommand('which', ['brew']);
+  return "brew not found" !== result;
+}
+
+function isLinux() : boolean{
+  return PLATFORM === 'linux';
+}
+
+function isWin() : boolean{
+  return PLATFORM.startsWith('win');
 }

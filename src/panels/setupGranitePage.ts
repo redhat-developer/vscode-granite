@@ -1,4 +1,11 @@
-import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, env } from "vscode";
+import {
+  Disposable,
+  Webview,
+  WebviewPanel,
+  window,
+  Uri,
+  ViewColumn,
+} from "vscode";
 import { getUri } from "../utilities/getUri";
 import { getNonce } from "../utilities/getNonce";
 import { IModelServer } from "../modelServer";
@@ -33,7 +40,10 @@ export class SetupGranitePage {
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
 
     // Set the HTML content for the webview panel
-    this._panel.webview.html = this._getWebviewContent(this._panel.webview, extensionUri);
+    this._panel.webview.html = this._getWebviewContent(
+      this._panel.webview,
+      extensionUri
+    );
 
     // Set an event listener to listen for messages passed from the webview context
     this._setWebviewMessageListener(this._panel.webview);
@@ -63,7 +73,10 @@ export class SetupGranitePage {
           // Enable JavaScript in the webview
           enableScripts: true,
           // Restrict the webview to only load resources from the `out` and `webviews/build` directories
-          localResourceRoots: [Uri.joinPath(extensionUri, "out"), Uri.joinPath(extensionUri, "webviews/build")],
+          localResourceRoots: [
+            Uri.joinPath(extensionUri, "out"),
+            Uri.joinPath(extensionUri, "webviews/build"),
+          ],
         }
       );
 
@@ -102,9 +115,19 @@ export class SetupGranitePage {
    */
   private _getWebviewContent(webview: Webview, extensionUri: Uri) {
     // The CSS file from the React build output
-    const stylesUri = getUri(webview, extensionUri, ["webviews", "build", "assets", "index.css"]);
+    const stylesUri = getUri(webview, extensionUri, [
+      "webviews",
+      "build",
+      "assets",
+      "index.css",
+    ]);
     // The JS file from the React build output
-    const scriptUri = getUri(webview, extensionUri, ["webviews", "build", "assets", "index.js"]);
+    const scriptUri = getUri(webview, extensionUri, [
+      "webviews",
+      "build",
+      "assets",
+      "index.js",
+    ]);
 
     const nonce = getNonce();
 
@@ -144,20 +167,18 @@ export class SetupGranitePage {
         const data = message.data;
         let ollamaInstalled: boolean | undefined;
         switch (command) {
-          case 'installOllama':
-            switch (data.mode) {
-              //TODO handle linux
-              case 'homebrew': {
-                await server.installServer();
-                break;
-              }
-              case 'manually': {
-                env.openExternal(Uri.parse('https://ollama.com/download'));
-                break;
-              }
-            }
+          case "init":
+            webview.postMessage({
+              command: "init",
+              data: {
+                installModes: await server.supportedInstallModes(),
+              },
+            });
             break;
-          case 'fetchStatus':
+          case "installOllama":
+            await server.installServer(data.mode);
+            break;
+          case "fetchStatus":
             const now = new Date().getTime();
             // Careful here, we're receiving 2 messages in Dev mode on useEffect, because <App> is wrapped with <React.StrictMode>
             // see https://stackoverflow.com/questions/60618844/react-hooks-useeffect-is-called-twice-even-if-an-empty-array-is-used-as-an-ar
@@ -171,7 +192,7 @@ export class SetupGranitePage {
             }
             debounceStatus = now;
 
-            console.log('Received fetchStatus msg '+debounceStatus);
+            console.log("Received fetchStatus msg " + debounceStatus);
             let models: string[];
             try {
               models = await server.listModels();
@@ -192,13 +213,13 @@ export class SetupGranitePage {
             }
             //TODO check selected models statuses
             //Respond with configuration status when init command is received
-              webview.postMessage({
-                command: 'status',
-                data: {
-                  ollamaInstalled,
-                  models
-                }
-              });
+            webview.postMessage({
+              command: "status",
+              data: {
+                ollamaInstalled,
+                models,
+              },
+            });
             break;
           case "setupGranite":
             await setupGranite(data as GraniteConfiguration);
@@ -216,27 +237,26 @@ type GraniteConfiguration = {
   chatModelId: string;
 };
 
-async function setupGranite(graniteConfiguration: GraniteConfiguration): Promise<void> {
+async function setupGranite(
+  graniteConfiguration: GraniteConfiguration
+): Promise<void> {
+  //TODO support installing ollama semi-automatically
+  //TODO handle continue (conflicting) onboarding page
 
-	//TODO support installing ollama semi-automatically
-	//TODO handle continue (conflicting) onboarding page
-
-	console.log("Starting Granite Code AI-Assistant...");
-	const modelServer: IModelServer = new OllamaServer();
-	if (!(await modelServer.isServerInstalled())) {
-		await modelServer.installServer();
-	} else {
-		// Start ollama if it's not running (ollama serve)
-	}
-	if (await modelServer.isModelInstalled(graniteConfiguration.tabModelId)) {
-		console.log(`${graniteConfiguration.tabModelId} is already installed`);
-	} else {
-		await modelServer.installModel(graniteConfiguration.tabModelId);
+  console.log("Starting Granite Code AI-Assistant...");
+  const modelServer: IModelServer = new OllamaServer();
+  if (await modelServer.isModelInstalled(graniteConfiguration.tabModelId)) {
+    console.log(`${graniteConfiguration.tabModelId} is already installed`);
+  } else {
+    await modelServer.installModel(graniteConfiguration.tabModelId);
   }
   if (await modelServer.isModelInstalled(graniteConfiguration.chatModelId)) {
-		console.log(`${graniteConfiguration.chatModelId} is already installed`);
-	} else {
-		await modelServer.installModel(graniteConfiguration.chatModelId);
-	}
-	modelServer.configureAssistant(graniteConfiguration.chatModelId, graniteConfiguration.tabModelId);
+    console.log(`${graniteConfiguration.chatModelId} is already installed`);
+  } else {
+    await modelServer.installModel(graniteConfiguration.chatModelId);
+  }
+  modelServer.configureAssistant(
+    graniteConfiguration.chatModelId,
+    graniteConfiguration.tabModelId
+  );
 }

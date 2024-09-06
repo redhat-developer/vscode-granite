@@ -28,7 +28,7 @@ class TerminalCommandRunner implements Disposable {
         if (!terminal) {
           terminal = window.createTerminal(name);
         }
-        //terminal.show();
+        terminal.show();
         terminal.sendText(command);
 
         // const defaultOptions = { addNewLine: true, show: true };

@@ -4,30 +4,13 @@ import { useEffect, useState } from "react";
 import ModelList from "./ModelList";
 import { FcCancel, FcCheckmark } from "react-icons/fc";
 
-function handleInstallOllama(mode: string) {
-  vscode.postMessage({
-    command: "installOllama",
-    data: {
-        mode,
-    }
-  });
-}
-
-function handleSetupGraniteClick() {
-  vscode.postMessage({
-    command: "setupGranite",
-    data: {
-        tabModelId: "granite-code:3b",
-        chatModelId: "granite-code:20b"
-    }
-  });
-}
 function App() {
   const modelOptions: string[] = ['granite-code:3b', 'granite-code:8b', 'granite-code:20b', 'granite-code:34b'];
   const [tabModel, setTabModel] = useState<string>(modelOptions[0]);
   const [chatModel, setChatModel] = useState<string>(modelOptions[2]);
   const [status, setStatus] = useState<string>('Unknown');
   const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [installationModes, setInstallationModes] = useState<{id:string, label:string}[]>([]);
 
   function isAvailable(model: string): boolean {
     if (availableModels && availableModels.length > 0) {
@@ -42,6 +25,30 @@ function App() {
     });
   }
 
+  function init(): void {
+    vscode.postMessage({
+      command: 'init'
+    });
+  }
+
+  function handleInstallOllama(mode: string) {
+    vscode.postMessage({
+      command: "installOllama",
+      data: {
+          mode,
+      }
+    });
+  }
+
+  function handleSetupGraniteClick() {
+    vscode.postMessage({
+      command: "setupGranite",
+      data: {
+          tabModelId: tabModel,
+          chatModelId: chatModel
+      }
+    });
+  }
   const REFETCH_MODELS_INTERVAL_MS = 1000;
   let ollamaStatusChecker: NodeJS.Timeout | undefined;
 
@@ -56,20 +63,28 @@ function App() {
       if (!command) {
         return;
       }
-      if (command === 'status') {
-        const data = payload.data; // The JSON data our extension sent
-        setStatus(data.ollamaInstalled ? "installed" : "Not installed");
-        setAvailableModels(data.models);
+      switch (command) {
+        case 'init': {
+          const data = payload.data;
+          setInstallationModes(data.installModes);
+          break;
+        }
+        case 'status': {
+          const data = payload.data; // The JSON data our extension sent
+          setStatus(data.ollamaInstalled ? "installed" : "Not installed");
+          setAvailableModels(data.models);
 
-        //If everything is installed, clear the ollamaStatusChecker
-        if (status === "installed" && modelOptions.filter(isAvailable)?.length === modelOptions.length) {
-          console.log("Clearing ollamaStatusChecker");
-          ollamaStatusChecker = undefined;
-        } else {
-          ollamaStatusChecker = setTimeout(
-            requestStatus,
-            REFETCH_MODELS_INTERVAL_MS,
-          );
+          //If everything is installed, clear the ollamaStatusChecker
+          if (status === "installed" && modelOptions.filter(isAvailable)?.length === modelOptions.length) {
+            console.log("Clearing ollamaStatusChecker");
+            ollamaStatusChecker = undefined;
+          } else {
+            ollamaStatusChecker = setTimeout(
+              requestStatus,
+              REFETCH_MODELS_INTERVAL_MS,
+            );
+          }
+          break;
         }
       }
     }
@@ -78,6 +93,7 @@ function App() {
     window.addEventListener('message', handleMessage);
 
     // Send init message to vscode
+    init();
     requestStatus();
 
     return () => {
@@ -97,15 +113,23 @@ function App() {
         <label>Ollama status:</label>
         <span>{status}</span>
           {/* New section for additional buttons */}
-          {status !== 'installed' && (
+          {status !== 'installed' && installationModes.length > 0 && (
           <div className="install-options">
-            {/* TODO handle Platform specific installations (linux or homebrew when available on mac/linux*/}
-              <button className="install-button" onClick={()=>handleInstallOllama('homebrew')}>Install with HomeBrew</button>
-              <button className="install-button" onClick={()=>handleInstallOllama('manually')}>Install manually</button>
+            <p><span>This page will refresh once Ollama is installed.</span></p>
+            {installationModes.map((mode) => (
+              <button
+                key={mode.id}
+                className="install-button"
+                onClick={() => handleInstallOllama(mode.id)}
+              >
+                {mode.label}
+              </button>
+            ))}
             </div>
           )}
       </div>
 
+      {/* FIXME align labels and selects */}
       <ModelList
         label="Chat model"
         value={chatModel}
