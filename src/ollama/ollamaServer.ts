@@ -1,22 +1,22 @@
 import * as fs from "fs/promises";
 import os from "os";
+import { env, ProgressLocation, Uri, window } from "vscode";
 import {
   AiAssistantConfigurationRequest,
   AiAssistantConfigurator,
 } from "../configureAssistant";
 import { IModelServer } from "../modelServer";
-import { executeCommand } from "../utils/cpUtils";
-import {env, ProgressLocation, Uri, window} from "vscode";
 import { terminalCommandRunner } from "../terminal/terminalCommandRunner";
+import { executeCommand } from "../utils/cpUtils";
 
 const PLATFORM = os.platform();
 
 export class OllamaServer implements IModelServer {
-
   name!: "Ollama";
 
-  async supportedInstallModes(): Promise<{ id: string; label: string; }[]> {
+  async supportedInstallModes(): Promise<{ id: string; label: string }[]> {
     const modes = [];
+
     if (await isHomebrewAvailable()) {
       // homebrew is available
       modes.push({ id: "homebrew", label: "Install with Homebrew" });
@@ -26,7 +26,6 @@ export class OllamaServer implements IModelServer {
       modes.push({ id: "script", label: "Install with script" });
     }
     modes.push({ id: "manual", label: "Install manually" });
-
     return modes;
   }
 
@@ -67,29 +66,29 @@ export class OllamaServer implements IModelServer {
 
   async installServer(mode: string): Promise<boolean> {
     switch (mode) {
-        case "homebrew":{
-           await terminalCommandRunner.runInTerminal(
-                "clear && brew install --cask ollama && sleep 3 && ollama list", //run ollama list to trigger the ollama daemon
-                {
-                  name: "Granite Code Setup",
-                  show: true,
-                }
-           );
-           return true;
-        }
-      case "script":
-            await terminalCommandRunner.runInTerminal(
-              "clear && curl -fsSL https://ollama.com/install.sh | sh",
-              {
-                name: "Granite Code Setup",
-                show: true,
-              }
+      case "homebrew": {
+        await terminalCommandRunner.runInTerminal(
+          "clear && brew install --cask ollama && sleep 3 && ollama list", //run ollama list to trigger the ollama daemon
+          {
+            name: "Granite Code Setup",
+            show: true,
+          }
         );
         return true;
-      case 'manual':
-      default:
-        env.openExternal(Uri.parse('https://ollama.com/download'));
       }
+      case "script":
+        await terminalCommandRunner.runInTerminal(
+          "clear && curl -fsSL https://ollama.com/install.sh | sh",
+          {
+            name: "Granite Code Setup",
+            show: true,
+          }
+        );
+        return true;
+      case "manual":
+      default:
+        env.openExternal(Uri.parse("https://ollama.com/download"));
+    }
     return true;
   }
 
@@ -103,11 +102,10 @@ export class OllamaServer implements IModelServer {
         // File does not exist
         console.log(`${filePath} does not exist`);
         return false;
-      } else {
-        // Some other error occurred
-        console.error("Error checking file existence:", error);
-        throw error;
       }
+      // Some other error occurred
+      console.error("Error checking file existence:", error);
+      throw error;
     }
   }
 
@@ -121,7 +119,7 @@ export class OllamaServer implements IModelServer {
       await fetch("http://localhost:11434/v1/models")
     ).json() as any;
     const rawModels = (await json)?.data;
-    const models = (rawModels)?rawModels.map((model: any) => model.id):[];
+    const models = rawModels ? rawModels.map((model: any) => model.id) : [];
     return models;
   }
 
@@ -135,13 +133,13 @@ export class OllamaServer implements IModelServer {
     tabModelName: string
   ): Promise<void> {
     const request = {
-        chatModelName,
-        tabModelName,
-        provider: "ollama",
-        inferenceEndpoint: "http://localhost:11434",
-        contextLength: 20000,
-        systemMessage:
-          "You are Granite Chat, an AI language model developed by IBM. You are a cautious assistant. You carefully follow instructions. You are helpful and harmless and you follow ethical guidelines and promote positive behavior. You always respond to greetings (for example, hi, hello, g'day, morning, afternoon, evening, night, what's up, nice to meet you, sup, etc) with \"Hello! I am Granite Chat, created by IBM. How can I help you today?\". Please do not say anything else and do not start a conversation.",
+      chatModelName,
+      tabModelName,
+      provider: "ollama",
+      inferenceEndpoint: "http://localhost:11434",
+      contextLength: 20000,
+      systemMessage:
+        "You are Granite Chat, an AI language model developed by IBM. You are a cautious assistant. You carefully follow instructions. You are helpful and harmless and you follow ethical guidelines and promote positive behavior. You always respond to greetings (for example, hi, hello, g'day, morning, afternoon, evening, night, what's up, nice to meet you, sup, etc) with \"Hello! I am Granite Chat, created by IBM. How can I help you today?\". Please do not say anything else and do not start a conversation.",
     } as AiAssistantConfigurationRequest;
     const assistantConfigurator = new AiAssistantConfigurator(request);
     await assistantConfigurator.configureAssistant();
@@ -167,7 +165,6 @@ async function pullModel(modelName: string) {
         let currentProgress = 0;
         await executeCommand(cmd, [], undefined, token, (data) => {
           // Update progress in the UI
-
           let match;
           let lastMatch = null;
 
@@ -191,17 +188,18 @@ async function pullModel(modelName: string) {
 }
 
 async function isHomebrewAvailable(): Promise<boolean> {
-  if (isWin()) { //TODO Would that be an issue on WSL2?
+  if (isWin()) {
+    //TODO Would that be an issue on WSL2?
     return false;
   }
-  const result = await executeCommand('which', ['brew']);
+  const result = await executeCommand("which", ["brew"]);
   return "brew not found" !== result;
 }
 
-function isLinux() : boolean{
-  return PLATFORM === 'linux';
+function isLinux(): boolean {
+  return PLATFORM === "linux";
 }
 
-function isWin() : boolean{
-  return PLATFORM.startsWith('win');
+function isWin(): boolean {
+  return PLATFORM.startsWith("win");
 }

@@ -4,8 +4,6 @@
 
 import { Disposable, Terminal, window } from "vscode";
 
-import { WindowsShellType, currentWindowsShell, getCommand, getCDCommand, setupEnvForWSL } from '../utils/shellUtils';
-
 export interface ITerminalOptions {
     addNewLine?: boolean;
     name: string;

@@ -1,15 +1,15 @@
 import {
   Disposable,
+  Uri,
+  ViewColumn,
   Webview,
   WebviewPanel,
   window,
-  Uri,
-  ViewColumn,
 } from "vscode";
-import { getUri } from "../utilities/getUri";
-import { getNonce } from "../utilities/getNonce";
 import { IModelServer } from "../modelServer";
 import { OllamaServer } from "../ollama/ollamaServer";
+import { getNonce } from "../utilities/getNonce";
+import { getUri } from "../utilities/getUri";
 
 /**
  * This class manages the state and behavior of HelloWorld webview panels.
