@@ -6,17 +6,22 @@ import { FcCancel, FcCheckmark } from "react-icons/fc";
 
 function App() {
   const modelOptions: string[] = ['granite-code:3b', 'granite-code:8b', 'granite-code:20b', 'granite-code:34b'];
+  const embeddingsOptions: string[] = ['nomic-embed-text'];
   const [tabModel, setTabModel] = useState<string>(modelOptions[0]);
   const [chatModel, setChatModel] = useState<string>(modelOptions[2]);
+  const [embeddingsModel, setEmbeddingsModel] = useState<string>(embeddingsOptions[0]);
+
   const [status, setStatus] = useState<string>('Unknown');
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [installationModes, setInstallationModes] = useState<{id:string, label:string}[]>([]);
 
   function isAvailable(model: string): boolean {
-    if (availableModels && availableModels.length > 0) {
-      return availableModels.includes(model);
+    if (!model.includes(':')) {
+      model = model + ':latest';
     }
-    return false;
+    let result = availableModels && availableModels.length > 0 && availableModels.includes(model);
+    //console.log(model + " is " + (result ? '' : 'not ') + "available from " + availableModels);
+    return result;
   }
 
   function requestStatus(): void {
@@ -44,8 +49,9 @@ function App() {
     vscode.postMessage({
       command: "setupGranite",
       data: {
-          tabModelId: tabModel,
-          chatModelId: chatModel
+        tabModelId: tabModel,
+        chatModelId: chatModel,
+        embeddingsModelId: embeddingsModel
       }
     });
   }
@@ -141,11 +147,21 @@ function App() {
       {/*TODO display embedded progress bar while model is being pulled? Add pull button? */}
 
       <ModelList
-        label="Tab model"
+        label="Tab completion model"
         value={tabModel}
         onChange={(e) => setTabModel(e.target.value)}
         status={isAvailable(tabModel)}
         options={modelOptions}
+        progress={-1}
+      />
+      {/*TODO display embedded progress bar while model is being pulled? Add pull button? */}
+
+      <ModelList
+        label="Embeddings model"
+        value={embeddingsModel}
+        onChange={(e) => setEmbeddingsModel(e.target.value)}
+        status={isAvailable(embeddingsModel)}
+        options={embeddingsOptions}
         progress={-1}
       />
       {/*TODO display embedded progress bar while model is being pulled? Add pull button? */}

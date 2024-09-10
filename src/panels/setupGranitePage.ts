@@ -192,7 +192,7 @@ export class SetupGranitePage {
             }
             debounceStatus = now;
 
-            console.log("Received fetchStatus msg " + debounceStatus);
+            // console.log("Received fetchStatus msg " + debounceStatus);
             let models: string[];
             try {
               models = await server.listModels();
@@ -235,6 +235,7 @@ export class SetupGranitePage {
 type GraniteConfiguration = {
   tabModelId: string;
   chatModelId: string;
+  embeddingsModelId: string;
 };
 
 async function setupGranite(
@@ -255,8 +256,14 @@ async function setupGranite(
   } else {
     await modelServer.installModel(graniteConfiguration.chatModelId);
   }
+  if (await modelServer.isModelInstalled(graniteConfiguration.embeddingsModelId)) {
+    console.log(`${graniteConfiguration.embeddingsModelId} is already installed`);
+  } else {
+    await modelServer.installModel(graniteConfiguration.embeddingsModelId);
+  }
   modelServer.configureAssistant(
     graniteConfiguration.chatModelId,
-    graniteConfiguration.tabModelId
+    graniteConfiguration.tabModelId,
+    graniteConfiguration.embeddingsModelId
   );
 }

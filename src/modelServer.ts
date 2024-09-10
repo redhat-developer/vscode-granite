@@ -7,7 +7,8 @@ export interface IModelServer {
   supportedInstallModes(): Promise<{ id: string; label: string }[]>; //manual, script, homebrew
   configureAssistant(
     chatModelName: string,
-    tabModelName: string
+    tabModelName: string,
+    embeddingsModel: string
   ): Promise<void>;
   listModels(): Promise<string[]>;
 }

@@ -130,11 +130,13 @@ export class OllamaServer implements IModelServer {
 
   async configureAssistant(
     chatModelName: string,
-    tabModelName: string
+    tabModelName: string,
+    embeddingsModelName: string
   ): Promise<void> {
     const request = {
       chatModelName,
       tabModelName,
+      embeddingsModelName,
       provider: "ollama",
       inferenceEndpoint: "http://localhost:11434",
       contextLength: 20000,
