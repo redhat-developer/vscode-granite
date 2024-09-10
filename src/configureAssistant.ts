@@ -11,13 +11,13 @@ import * as path from "path";
 import * as vscode from "vscode";
 
 export interface AiAssistantConfigurationRequest {
-    chatModelName: string;
-    tabModelName: string;
-    //TODO maybe add an embeddings model
-    inferenceEndpoint?: string;
-    provider?: string;
-    systemMessage?: string;
-    contextLength?: number;
+  chatModelName: string;
+  tabModelName: string;
+  embeddingsModelName: string;
+  inferenceEndpoint?: string;
+  provider?: string;
+  systemMessage?: string;
+  contextLength?: number;
 }
 
 interface Model {
@@ -86,6 +86,14 @@ export class AiAssistantConfigurator {
     };
     if (config.tabAutocompleteModel !== tabAutocompleteModel) {
       config.tabAutocompleteModel = tabAutocompleteModel;
+      updateConfig = true;
+    }
+    const embeddingsProvider = {
+      provider: 'ollama',
+      model: this.request.embeddingsModelName,
+    };
+    if (config.embeddingsProvider !== embeddingsProvider) {
+      config.embeddingsProvider = embeddingsProvider;
       updateConfig = true;
     }
     if (updateConfig) {
