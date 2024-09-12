@@ -1,6 +1,6 @@
 import * as fs from "fs/promises";
 import os from "os";
-import { env, ProgressLocation, Uri, window } from "vscode";
+import { env, Progress, ProgressLocation, Uri, window } from "vscode";
 import {
   AiAssistantConfigurationRequest,
   AiAssistantConfigurator,
@@ -10,6 +10,7 @@ import { terminalCommandRunner } from "../terminal/terminalCommandRunner";
 import { executeCommand } from "../utils/cpUtils";
 
 const PLATFORM = os.platform();
+const OLLAMA_URL = "http://localhost:11434";
 
 export class OllamaServer implements IModelServer {
   name!: "Ollama";
@@ -116,7 +117,7 @@ export class OllamaServer implements IModelServer {
 
   async listModels(): Promise<string[]> {
     const json = (
-      await fetch("http://localhost:11434/v1/models")
+      await fetch(`${OLLAMA_URL}/v1/models`)
     ).json() as any;
     const rawModels = (await json)?.data;
     const models = rawModels ? rawModels.map((model: any) => model.id) : [];
@@ -138,7 +139,7 @@ export class OllamaServer implements IModelServer {
       tabModelName,
       embeddingsModelName,
       provider: "ollama",
-      inferenceEndpoint: "http://localhost:11434",
+      inferenceEndpoint: OLLAMA_URL,
       contextLength: 20000,
       systemMessage:
         "You are Granite Chat, an AI language model developed by IBM. You are a cautious assistant. You carefully follow instructions. You are helpful and harmless and you follow ethical guidelines and promote positive behavior. You always respond to greetings (for example, hi, hello, g'day, morning, afternoon, evening, night, what's up, nice to meet you, sup, etc) with \"Hello! I am Granite Chat, created by IBM. How can I help you today?\". Please do not say anything else and do not start a conversation.",
@@ -148,10 +149,7 @@ export class OllamaServer implements IModelServer {
   }
 }
 
-const regex = /pulling\s+[a-f0-9]+\.\.\.\s+(\d+%)/g;
-
 async function pullModel(modelName: string) {
-  //TODO use ollama REST API instead of CLI
   return window.withProgress(
     {
       location: ProgressLocation.Notification,
@@ -162,31 +160,56 @@ async function pullModel(modelName: string) {
       token.onCancellationRequested(() => {
         console.log(`Pulling ${modelName} model was cancelled`);
       });
-      const cmd = `ollama pull ${modelName}`;
       try {
-        let currentProgress = 0;
-        await executeCommand(cmd, [], undefined, token, (data) => {
-          // Update progress in the UI
-          let match;
-          let lastMatch = null;
-
-          while ((match = regex.exec(data)) !== null) {
-            lastMatch = match;
-          }
-          if (lastMatch) {
-            const message = lastMatch[0];
-            const progressValue = parseInt(lastMatch[1], 10);
-            const increment = progressValue - currentProgress;
-            currentProgress = progressValue;
-            progress.report({ increment, message });
-          }
-        });
+        await cancellablePullModel(modelName, progress, token);
       } catch (error) {
-        //TODO handle Error: pull model manifest: Get "https://registry.ollama.ai/v2/library/granite-code/manifests/3b": read tcp 192.168.0.159:50487->104.21.75.227:443: read: operation timed out
-        console.log(error);
+        console.error('Error pulling model:', error);
+        throw error;
       }
     }
   );
+}
+
+async function cancellablePullModel(modelName: string, progress: Progress<{ increment: number; message?: string; }>, token: any) {
+  const response = await fetch(`${OLLAMA_URL}/api/pull`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ name: modelName }),
+  });
+
+  const reader = response.body?.getReader();
+  let currentProgress = 0;
+
+  while (true) {
+    const { done, value } = await reader?.read() || { done: true, value: undefined };
+    if (done) {
+      break;
+    }
+
+    const chunk = new TextDecoder().decode(value);
+    const lines = chunk.split('\n').filter(Boolean);
+
+    for (const line of lines) {
+      const data = JSON.parse(line);
+      console.log(data);
+      if (data.total) {
+        const completed = data.completed ? data.completed : 0;
+        const progressValue = Math.round((completed / data.total) * 100);
+        const increment = progressValue - currentProgress;
+        currentProgress = progressValue;
+        progress.report({ increment, message: `${data.status} ${progressValue}%` });
+      } else {
+        progress.report({ increment: 0, message: `${data.status}` });
+      }
+    }
+
+    if (token.isCancellationRequested) {
+      reader?.cancel();
+      break;
+    }
+  }
 }
 
 async function isHomebrewAvailable(): Promise<boolean> {
