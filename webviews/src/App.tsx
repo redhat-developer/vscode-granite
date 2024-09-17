@@ -1,26 +1,34 @@
 import { vscode } from "./utilities/vscode";
 import "./App.css";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ModelList from "./ModelList";
 import { FcCancel, FcCheckmark } from "react-icons/fc";
+import { ProgressData } from "../../src/commons/progressData";
+
 
 function App() {
   const modelOptions: string[] = ['granite-code:3b', 'granite-code:8b', 'granite-code:20b', 'granite-code:34b'];
   const embeddingsOptions: string[] = ['nomic-embed-text'];
   const [tabModel, setTabModel] = useState<string>(modelOptions[0]);
   const [chatModel, setChatModel] = useState<string>(modelOptions[2]);
+
   const [embeddingsModel, setEmbeddingsModel] = useState<string>(embeddingsOptions[0]);
+
+  const [chatModelPullProgress, setChatModelPullProgress] = useState<ProgressData | undefined>();
+  const [tabModelPullProgress, setTabModelPullProgress] = useState<ProgressData | undefined>();
+  const [embeddingsModelPullProgress, setEmbeddingsModelPullProgress] = useState<ProgressData | undefined>();
 
   const [status, setStatus] = useState<string>('Unknown');
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [installationModes, setInstallationModes] = useState<{id:string, label:string}[]>([]);
+
+  const [enabled, setEnabled] = useState<boolean>(true);
 
   function isAvailable(model: string): boolean {
     if (!model.includes(':')) {
       model = model + ':latest';
     }
     let result = availableModels && availableModels.length > 0 && availableModels.includes(model);
-    //console.log(model + " is " + (result ? '' : 'not ') + "available from " + availableModels);
     return result;
   }
 
@@ -55,47 +63,72 @@ function App() {
       }
     });
   }
-  const REFETCH_MODELS_INTERVAL_MS = 1000;
+  const REFETCH_MODELS_INTERVAL_MS = 1500;
   let ollamaStatusChecker: NodeJS.Timeout | undefined;
+
+  const handleMessage = useCallback((event: any) => {
+    const payload = event.data;
+    //console.log(`Received event ${JSON.stringify(payload)}`);
+    const command: string | undefined = payload.command;
+    if (!command) {
+      return;
+    }
+    switch (command) {
+      case 'init': {
+        const data = payload.data;
+        setInstallationModes(data.installModes);
+        break;
+      }
+      case 'status': {
+        const data = payload.data; // The JSON data our extension sent
+        setStatus(data.ollamaInstalled ? "installed" : "Not installed");
+        setAvailableModels(data.models);
+
+        //If everything is installed, clear the ollamaStatusChecker
+        if (status === "installed" && modelOptions.filter(isAvailable)?.length === modelOptions.length) {
+          console.log("Clearing ollamaStatusChecker");
+          ollamaStatusChecker = undefined;
+        } else {
+          ollamaStatusChecker = setTimeout(
+            requestStatus,
+            REFETCH_MODELS_INTERVAL_MS,
+          );
+        }
+        break;
+      }
+      case 'pull-progress': {
+        const progress = payload.data.progress as ProgressData;
+        const pulledModelName = progress.key;
+        //const progressData = data.progress as ProgressData;
+        //find the ModelList component with the modelName value and update the progress
+        //console.log(`Received pull-progress event ${pulledModelName} : ${progress}`);
+        //console.log(`pulledModelName: ${pulledModelName} VS chatModel: ${chatModel}, tabModel: ${tabModel}, embeddingsModel: ${embeddingsModel}`);
+        if (pulledModelName === chatModel) {
+          //console.log(`Updating chat model progress to ${progress}`);
+          setChatModelPullProgress(progress);
+        }
+        if (pulledModelName === tabModel) {
+          //console.log(`Updating tab model progress to ${progress}`);
+          setTabModelPullProgress(progress);
+        }
+        if (pulledModelName === embeddingsModel) {
+          //console.log(`Updating embeddings model progress to ${progress}`);
+          setEmbeddingsModelPullProgress(progress);
+        }
+        break;
+      }
+      case 'page-update': {
+        const disabled = payload.data.installing;
+        console.log(`${disabled ? 'dis' : 'en'}abling components`);
+        setEnabled(!disabled);
+        break;
+      }
+    }
+  }, [chatModel, tabModel, embeddingsModel]);
 
   // Effect to send the init message when the component is mounted
   useEffect(() => {
-    console.log("Component mounted");
-    // Listener for receiving messages from vscode
-    function handleMessage(event: any) {
-      const payload = event.data;
-      console.log(`Received event ${JSON.stringify(payload)}`);
-      const command: string | undefined = payload.command;
-      if (!command) {
-        return;
-      }
-      switch (command) {
-        case 'init': {
-          const data = payload.data;
-          setInstallationModes(data.installModes);
-          break;
-        }
-        case 'status': {
-          const data = payload.data; // The JSON data our extension sent
-          setStatus(data.ollamaInstalled ? "installed" : "Not installed");
-          setAvailableModels(data.models);
-
-          //If everything is installed, clear the ollamaStatusChecker
-          if (status === "installed" && modelOptions.filter(isAvailable)?.length === modelOptions.length) {
-            console.log("Clearing ollamaStatusChecker");
-            ollamaStatusChecker = undefined;
-          } else {
-            ollamaStatusChecker = setTimeout(
-              requestStatus,
-              REFETCH_MODELS_INTERVAL_MS,
-            );
-          }
-          break;
-        }
-      }
-    }
-
-    // Add event listener
+  // Listener for receiving messages from vscode
     window.addEventListener('message', handleMessage);
 
     // Send init message to vscode
@@ -103,12 +136,13 @@ function App() {
     requestStatus();
 
     return () => {
+      // When the component is unmounted, clear the ollamaStatusChecker and remove the event listener
       if (ollamaStatusChecker) {
         clearTimeout(ollamaStatusChecker);
       }
       window.removeEventListener('message', handleMessage);
     };
-  }, []);
+  }, [handleMessage]);
 
   return (
     <main>
@@ -127,6 +161,7 @@ function App() {
                 key={mode.id}
                 className="install-button"
                 onClick={() => handleInstallOllama(mode.id)}
+                disabled={!enabled}
               >
                 {mode.label}
               </button>
@@ -142,7 +177,8 @@ function App() {
         onChange={(e) => setChatModel(e.target.value)}
         status={isAvailable(chatModel)}
         options={modelOptions}
-        progress={-1}
+        progress={chatModelPullProgress}
+        disabled={!enabled}
       />
       {/*TODO display embedded progress bar while model is being pulled? Add pull button? */}
 
@@ -152,7 +188,8 @@ function App() {
         onChange={(e) => setTabModel(e.target.value)}
         status={isAvailable(tabModel)}
         options={modelOptions}
-        progress={-1}
+        progress={tabModelPullProgress}
+        disabled={!enabled}
       />
       {/*TODO display embedded progress bar while model is being pulled? Add pull button? */}
 
@@ -162,12 +199,13 @@ function App() {
         onChange={(e) => setEmbeddingsModel(e.target.value)}
         status={isAvailable(embeddingsModel)}
         options={embeddingsOptions}
-        progress={-1}
+        progress={embeddingsModelPullProgress}
+        disabled={!enabled}
       />
       {/*TODO display embedded progress bar while model is being pulled? Add pull button? */}
 
       <div className="form-group">
-        <button className="install-button" onClick={handleSetupGraniteClick} disabled={status !== 'installed'}>Install Granite Code</button>
+        <button className="install-button" onClick={handleSetupGraniteClick} disabled={status !== 'installed' || !enabled}>Install Granite Code</button>
       </div>
     </main>
   );

@@ -19,7 +19,7 @@ export async function executeCommand(command: string, args: string[], options: c
         }
         childProc.stdout?.on("data", (data: string | Buffer) => {
             data = data.toString();
-            console.log(data);
+            //console.log(data);
             result = result.concat(data);
         });
         childProc.stderr?.on("data", (data: string | Buffer) => {

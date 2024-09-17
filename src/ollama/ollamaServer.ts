@@ -1,6 +1,7 @@
 import * as fs from "fs/promises";
 import os from "os";
-import { env, ProgressLocation, Uri, window } from "vscode";
+import { CancellationError, env, Progress, ProgressLocation, Uri, window } from "vscode";
+import { ProgressData } from "../commons/progressData";
 import {
   AiAssistantConfigurationRequest,
   AiAssistantConfigurator,
@@ -10,6 +11,7 @@ import { terminalCommandRunner } from "../terminal/terminalCommandRunner";
 import { executeCommand } from "../utils/cpUtils";
 
 const PLATFORM = os.platform();
+const OLLAMA_URL = "http://localhost:11434";
 
 export class OllamaServer implements IModelServer {
   name!: "Ollama";
@@ -35,9 +37,8 @@ export class OllamaServer implements IModelServer {
       await executeCommand("ollama", ["-v"]);
       console.log("Ollama is installed");
       return true;
-    } catch (error) {
-      console.log("Ollama is NOT installed");
-      console.log(error);
+    } catch (error: any) {
+      console.log("Ollama is NOT installed: " + error?.message);
       return false;
     }
   }
@@ -111,20 +112,23 @@ export class OllamaServer implements IModelServer {
 
   async isModelInstalled(modelName: string): Promise<boolean> {
     const models = await this.listModels();
+    if (!modelName.includes(":")) {
+      modelName = modelName + ":latest";
+    }
     return models.includes(modelName);
   }
 
   async listModels(): Promise<string[]> {
     const json = (
-      await fetch("http://localhost:11434/v1/models")
+      await fetch(`${OLLAMA_URL}/v1/models`)
     ).json() as any;
     const rawModels = (await json)?.data;
     const models = rawModels ? rawModels.map((model: any) => model.id) : [];
     return models;
   }
 
-  async installModel(modelName: string): Promise<any> {
-    await pullModel(modelName);
+  async installModel(modelName: string, reportProgress: (progress: ProgressData) => void): Promise<any> {
+    await pullModel(modelName, reportProgress);
     console.log(`${modelName} was pulled`);
   }
 
@@ -138,7 +142,7 @@ export class OllamaServer implements IModelServer {
       tabModelName,
       embeddingsModelName,
       provider: "ollama",
-      inferenceEndpoint: "http://localhost:11434",
+      inferenceEndpoint: OLLAMA_URL,
       contextLength: 20000,
       systemMessage:
         "You are Granite Chat, an AI language model developed by IBM. You are a cautious assistant. You carefully follow instructions. You are helpful and harmless and you follow ethical guidelines and promote positive behavior. You always respond to greetings (for example, hi, hello, g'day, morning, afternoon, evening, night, what's up, nice to meet you, sup, etc) with \"Hello! I am Granite Chat, created by IBM. How can I help you today?\". Please do not say anything else and do not start a conversation.",
@@ -148,45 +152,101 @@ export class OllamaServer implements IModelServer {
   }
 }
 
-const regex = /pulling\s+[a-f0-9]+\.\.\.\s+(\d+%)/g;
-
-async function pullModel(modelName: string) {
-  //TODO use ollama REST API instead of CLI
+async function pullModel(modelName: string, reportProgress: (progress: ProgressData) => void): Promise<void> {
   return window.withProgress(
     {
       location: ProgressLocation.Notification,
       title: `Installing model '${modelName}'`,
       cancellable: true,
     },
-    async (progress, token) => {
+    async (windowProgress, token) => {
+      let isCancelled = false;
+
       token.onCancellationRequested(() => {
         console.log(`Pulling ${modelName} model was cancelled`);
+        isCancelled = true;
       });
-      const cmd = `ollama pull ${modelName}`;
-      try {
-        let currentProgress = 0;
-        await executeCommand(cmd, [], undefined, token, (data) => {
-          // Update progress in the UI
-          let match;
-          let lastMatch = null;
 
-          while ((match = regex.exec(data)) !== null) {
-            lastMatch = match;
+      const progressWrapper: Progress<ProgressData> = {
+        report: (data) => {
+          const completed = data.completed ? data.completed : 0;
+          const totalSize = data.total ? data.total : 0;
+          let message = data.status;
+          if (totalSize > 0) {
+            const progressValue = Math.round((completed / totalSize) * 100);
+            message = `${message} ${progressValue}%`;
+            //report to vscode progress notification
+            windowProgress.report({ increment: data.increment, message });
+            //report to progress object
+            reportProgress(data);
           }
-          if (lastMatch) {
-            const message = lastMatch[0];
-            const progressValue = parseInt(lastMatch[1], 10);
-            const increment = progressValue - currentProgress;
-            currentProgress = progressValue;
-            progress.report({ increment, message });
-          }
-        });
+        },
+      };
+
+      try {
+        await cancellablePullModel(modelName, progressWrapper, token);
+        if (isCancelled) {
+          throw new CancellationError();
+        }
       } catch (error) {
-        //TODO handle Error: pull model manifest: Get "https://registry.ollama.ai/v2/library/granite-code/manifests/3b": read tcp 192.168.0.159:50487->104.21.75.227:443: read: operation timed out
-        console.log(error);
+        if (isCancelled) {
+          throw new CancellationError();
+        }
+        throw error; // Re-throw other errors
       }
     }
   );
+}
+
+async function cancellablePullModel(modelName: string, progress: Progress<ProgressData>, token: any) {
+  const response = await fetch(`${OLLAMA_URL}/api/pull`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ name: modelName }),
+  });
+
+  const reader = response.body?.getReader();
+  let currentProgress = 0;
+  let totalSize = 0;
+
+  while (true) {
+    const { done, value } = await reader?.read() || { done: true, value: undefined };
+    if (done) {
+      break;
+    }
+
+    const chunk = new TextDecoder().decode(value);
+    const lines = chunk.split('\n').filter(Boolean);
+
+    for (const line of lines) {
+      const data = JSON.parse(line);
+      console.log(data);
+      if (data.total) {
+        const completed = data.completed ? data.completed : 0;
+        totalSize = data.total;
+        const progressValue = Math.round((completed / data.total) * 100);
+        const increment = progressValue - currentProgress;
+        currentProgress = progressValue;
+
+        progress.report({
+          key: modelName,
+          increment,
+          completed,
+          total: data.total,
+          status: data.status,
+        });
+      } else {
+        progress.report({ key: modelName, increment: 0, status: data.status });
+      }
+    }
+
+    if (token.isCancellationRequested) {
+      reader?.cancel();
+      break;
+    }
+  }
 }
 
 async function isHomebrewAvailable(): Promise<boolean> {

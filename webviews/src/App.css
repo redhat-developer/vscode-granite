@@ -10,8 +10,19 @@ h1 {
   text-align: center;
 }
 
+div {
+  /* border: 1px solid #ccc; */
+  width: 100%;
+}
+
+div .progress-bar {
+  background-color: #015fb8;
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.2s ease-in-out;
+}
 .form-group {
-  margin: 10px;
+  margin: 15px;
 }
 
 .form-group label{
