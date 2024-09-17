@@ -1,6 +1,7 @@
 import * as fs from "fs/promises";
 import os from "os";
-import { env, Progress, ProgressLocation, Uri, window } from "vscode";
+import { CancellationError, env, Progress, ProgressLocation, Uri, window } from "vscode";
+import { ProgressData } from "../commons/progressData";
 import {
   AiAssistantConfigurationRequest,
   AiAssistantConfigurator,
@@ -36,9 +37,8 @@ export class OllamaServer implements IModelServer {
       await executeCommand("ollama", ["-v"]);
       console.log("Ollama is installed");
       return true;
-    } catch (error) {
-      console.log("Ollama is NOT installed");
-      console.log(error);
+    } catch (error: any) {
+      console.log("Ollama is NOT installed: " + error?.message);
       return false;
     }
   }
@@ -112,6 +112,9 @@ export class OllamaServer implements IModelServer {
 
   async isModelInstalled(modelName: string): Promise<boolean> {
     const models = await this.listModels();
+    if (!modelName.includes(":")) {
+      modelName = modelName + ":latest";
+    }
     return models.includes(modelName);
   }
 
@@ -124,8 +127,8 @@ export class OllamaServer implements IModelServer {
     return models;
   }
 
-  async installModel(modelName: string): Promise<any> {
-    await pullModel(modelName);
+  async installModel(modelName: string, reportProgress: (progress: ProgressData) => void): Promise<any> {
+    await pullModel(modelName, reportProgress);
     console.log(`${modelName} was pulled`);
   }
 
@@ -149,28 +152,53 @@ export class OllamaServer implements IModelServer {
   }
 }
 
-async function pullModel(modelName: string) {
+async function pullModel(modelName: string, reportProgress: (progress: ProgressData) => void): Promise<void> {
   return window.withProgress(
     {
       location: ProgressLocation.Notification,
       title: `Installing model '${modelName}'`,
       cancellable: true,
     },
-    async (progress, token) => {
+    async (windowProgress, token) => {
+      let isCancelled = false;
+
       token.onCancellationRequested(() => {
         console.log(`Pulling ${modelName} model was cancelled`);
+        isCancelled = true;
       });
+
+      const progressWrapper: Progress<ProgressData> = {
+        report: (data) => {
+          const completed = data.completed ? data.completed : 0;
+          const totalSize = data.total ? data.total : 0;
+          let message = data.status;
+          if (totalSize > 0) {
+            const progressValue = Math.round((completed / totalSize) * 100);
+            message = `${message} ${progressValue}%`;
+            //report to vscode progress notification
+            windowProgress.report({ increment: data.increment, message });
+            //report to progress object
+            reportProgress(data);
+          }
+        },
+      };
+
       try {
-        await cancellablePullModel(modelName, progress, token);
+        await cancellablePullModel(modelName, progressWrapper, token);
+        if (isCancelled) {
+          throw new CancellationError();
+        }
       } catch (error) {
-        console.error('Error pulling model:', error);
-        throw error;
+        if (isCancelled) {
+          throw new CancellationError();
+        }
+        throw error; // Re-throw other errors
       }
     }
   );
 }
 
-async function cancellablePullModel(modelName: string, progress: Progress<{ increment: number; message?: string; }>, token: any) {
+async function cancellablePullModel(modelName: string, progress: Progress<ProgressData>, token: any) {
   const response = await fetch(`${OLLAMA_URL}/api/pull`, {
     method: 'POST',
     headers: {
@@ -181,6 +209,7 @@ async function cancellablePullModel(modelName: string, progress: Progress<{ incr
 
   const reader = response.body?.getReader();
   let currentProgress = 0;
+  let totalSize = 0;
 
   while (true) {
     const { done, value } = await reader?.read() || { done: true, value: undefined };
@@ -196,12 +225,20 @@ async function cancellablePullModel(modelName: string, progress: Progress<{ incr
       console.log(data);
       if (data.total) {
         const completed = data.completed ? data.completed : 0;
+        totalSize = data.total;
         const progressValue = Math.round((completed / data.total) * 100);
         const increment = progressValue - currentProgress;
         currentProgress = progressValue;
-        progress.report({ increment, message: `${data.status} ${progressValue}%` });
+
+        progress.report({
+          key: modelName,
+          increment,
+          completed,
+          total: data.total,
+          status: data.status,
+        });
       } else {
-        progress.report({ increment: 0, message: `${data.status}` });
+        progress.report({ key: modelName, increment: 0, status: data.status });
       }
     }
 

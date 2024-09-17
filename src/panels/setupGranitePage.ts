@@ -1,4 +1,6 @@
 import {
+  CancellationError,
+  commands,
   Disposable,
   Uri,
   ViewColumn,
@@ -6,6 +8,7 @@ import {
   WebviewPanel,
   window,
 } from "vscode";
+import { ProgressData } from "../commons/progressData";
 import { IModelServer } from "../modelServer";
 import { OllamaServer } from "../ollama/ollamaServer";
 import { getNonce } from "../utilities/getNonce";
@@ -161,6 +164,7 @@ export class SetupGranitePage {
   private _setWebviewMessageListener(webview: Webview) {
     const server = new OllamaServer();
     let debounceStatus = 0;
+
     webview.onDidReceiveMessage(
       async (message: any) => {
         const command = message.command;
@@ -222,7 +226,30 @@ export class SetupGranitePage {
             });
             break;
           case "setupGranite":
-            await setupGranite(data as GraniteConfiguration);
+            async function reportProgress(progress: ProgressData) {
+              webview.postMessage({
+                command: "pull-progress",
+                data: {
+                  progress,
+                },
+              });
+            }
+            webview.postMessage({
+              command: "page-update",
+              data: {
+                installing: true
+              },
+            });
+            try {
+              await setupGranite(data as GraniteConfiguration, reportProgress);
+            } finally {
+              webview.postMessage({
+                command: "page-update",
+                data: {
+                  installing: false
+                },
+              });
+            }
             return;
         }
       },
@@ -230,6 +257,7 @@ export class SetupGranitePage {
       this._disposables
     );
   }
+
 }
 
 type GraniteConfiguration = {
@@ -238,32 +266,41 @@ type GraniteConfiguration = {
   embeddingsModelId: string;
 };
 
+
+
+
 async function setupGranite(
-  graniteConfiguration: GraniteConfiguration
-): Promise<void> {
-  //TODO support installing ollama semi-automatically
+  graniteConfiguration: GraniteConfiguration, reportProgress: (progress: ProgressData) => void): Promise<void> {
   //TODO handle continue (conflicting) onboarding page
 
   console.log("Starting Granite Code AI-Assistant...");
   const modelServer: IModelServer = new OllamaServer();
-  if (await modelServer.isModelInstalled(graniteConfiguration.tabModelId)) {
-    console.log(`${graniteConfiguration.tabModelId} is already installed`);
-  } else {
-    await modelServer.installModel(graniteConfiguration.tabModelId);
+
+  //collect all unique models to install, from graniteConfiguration
+  const modelsToInstall = new Set([graniteConfiguration.chatModelId, graniteConfiguration.tabModelId, graniteConfiguration.embeddingsModelId]);
+
+  try {
+    for (const model of modelsToInstall) {
+      if (await modelServer.isModelInstalled(model)) {
+        console.log(`${model} is already installed`);
+      } else {
+        await modelServer.installModel(model, reportProgress);
+      }
+    }
+
+    modelServer.configureAssistant(
+      graniteConfiguration.chatModelId,
+      graniteConfiguration.tabModelId,
+      graniteConfiguration.embeddingsModelId
+    );
+  } catch (error) {
+    //if error is CancellationError, then we can ignore it
+    if (error instanceof CancellationError) {
+      return;
+    }
+    throw error;
   }
-  if (await modelServer.isModelInstalled(graniteConfiguration.chatModelId)) {
-    console.log(`${graniteConfiguration.chatModelId} is already installed`);
-  } else {
-    await modelServer.installModel(graniteConfiguration.chatModelId);
-  }
-  if (await modelServer.isModelInstalled(graniteConfiguration.embeddingsModelId)) {
-    console.log(`${graniteConfiguration.embeddingsModelId} is already installed`);
-  } else {
-    await modelServer.installModel(graniteConfiguration.embeddingsModelId);
-  }
-  modelServer.configureAssistant(
-    graniteConfiguration.chatModelId,
-    graniteConfiguration.tabModelId,
-    graniteConfiguration.embeddingsModelId
-  );
+
+  commands.executeCommand("continue.continueGUIView.focus");
+
 }

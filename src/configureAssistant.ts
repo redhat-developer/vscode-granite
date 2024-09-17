@@ -70,8 +70,9 @@ export class AiAssistantConfigurator {
     );
     let updateConfig = false;
     if (existing) {
-      if (existing.model !== model.model) {
+      if (existing.model !== model.model || existing.title !== model.title) {
         existing.model = model.model;
+        existing.title = model.title;
         updateConfig = true;
       }
     } else {
