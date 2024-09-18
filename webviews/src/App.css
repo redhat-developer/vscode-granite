@@ -1,3 +1,5 @@
+/* See https://github.com/microsoft/vscode/blob/cf4bc01bfb3fc9826670e46cb88cca107ee064fc/build/lib/stylelint/vscode-known-variables.json#L771
+for variable reference */
 main {
   display: flex;
   flex-direction: column;
@@ -16,7 +18,7 @@ div {
 }
 
 div .progress-bar {
-  background-color: #015fb8;
+  background-color: var(--vscode-progressBar-background);
   height: 100%;
   border-radius: 5px;
   transition: width 0.2s ease-in-out;
@@ -47,9 +49,9 @@ div .progress-bar {
   border-radius: 5px;
 }
 
-.install-button {
-  background-color: #015fb8;
-  color: white;
+button {
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
   border: none;
   padding: 8px 16px;
   margin: 10px 5px;
@@ -57,14 +59,14 @@ div .progress-bar {
   border-radius: 2px;
 }
 
-.install-button:hover {
-  background-color: #085ca4
+button:hover {
+  background-color: var(--vscode-button-hoverBackground);
 }
 
 /* Styling for disabled buttons */
-.install-button:disabled {
-  /* background-color: #a1d5f9; Gray background for disabled state */
-  color: #888; /* Light gray text for disabled state */
+button:disabled {
+  background-color: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
   cursor: not-allowed; /* Change cursor to 'not-allowed' */
   opacity: 0.6; /* Reduce opacity for a disabled look */
 }
