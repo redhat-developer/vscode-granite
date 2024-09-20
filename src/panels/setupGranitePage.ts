@@ -1,7 +1,9 @@
+import * as fs from 'fs';
 import {
   CancellationError,
   commands,
   Disposable,
+  ExtensionMode,
   Uri,
   ViewColumn,
   Webview,
@@ -28,6 +30,7 @@ export class SetupGranitePage {
   public static currentPanel: SetupGranitePage | undefined;
   private readonly _panel: WebviewPanel;
   private _disposables: Disposable[] = [];
+  private _fileWatcher: fs.FSWatcher | undefined;
 
   /**
    * The HelloWorldPanel class private constructor (called only from the render method).
@@ -35,7 +38,7 @@ export class SetupGranitePage {
    * @param panel A reference to the webview panel
    * @param extensionUri The URI of the directory containing the extension
    */
-  private constructor(panel: WebviewPanel, extensionUri: Uri) {
+  private constructor(panel: WebviewPanel, extensionUri: Uri, extensionMode: ExtensionMode) {
     this._panel = panel;
 
     // Set an event listener to listen for when the panel is disposed (i.e. when the user closes
@@ -50,6 +53,44 @@ export class SetupGranitePage {
 
     // Set an event listener to listen for messages passed from the webview context
     this._setWebviewMessageListener(this._panel.webview);
+
+    if (extensionMode === ExtensionMode.Development) {
+      this._setupFileWatcher(extensionUri);
+    }
+  }
+
+  private _setupFileWatcher(extensionUri: Uri) {
+    const webviewsBuildPath = Uri.joinPath(extensionUri, "webviews", "build", "assets");
+    const webviewsBuildFsPath = webviewsBuildPath.fsPath;
+    console.log("Watching " + webviewsBuildFsPath);
+
+    let debounceTimer: NodeJS.Timeout | null = null;
+    const debounceDelay = 100; //100 ms
+
+    this._fileWatcher = fs.watch(webviewsBuildFsPath, (_event, filename) => {
+      if (filename) {
+        if (debounceTimer) {
+          clearTimeout(debounceTimer);
+        }
+
+        debounceTimer = setTimeout(() => {
+          console.log("File changed: " + filename + ", reloading webview");
+          this.debounceStatus = 0;
+          this._panel.webview.html = this._getWebviewContent(this._panel.webview, extensionUri);
+          debounceTimer = null;
+        }, debounceDelay);
+      }
+    });
+
+    // Add the file watcher to disposables
+    this._disposables.push(new Disposable(() => {
+      if (this._fileWatcher) {
+        this._fileWatcher.close();
+      }
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+    }));
   }
 
   /**
@@ -58,7 +99,7 @@ export class SetupGranitePage {
    *
    * @param extensionUri The URI of the directory containing the extension.
    */
-  public static render(extensionUri: Uri) {
+  public static render(extensionUri: Uri, extensionMode: ExtensionMode) {
     if (SetupGranitePage.currentPanel) {
       // If the webview panel already exists reveal it
       SetupGranitePage.currentPanel._panel.reveal(ViewColumn.One);
@@ -83,7 +124,7 @@ export class SetupGranitePage {
         }
       );
 
-      SetupGranitePage.currentPanel = new SetupGranitePage(panel, extensionUri);
+      SetupGranitePage.currentPanel = new SetupGranitePage(panel, extensionUri, extensionMode);
     }
   }
 
@@ -96,7 +137,7 @@ export class SetupGranitePage {
     // Dispose of the current webview panel
     this._panel.dispose();
 
-    // Dispose of all disposables (i.e. commands) for the current webview panel
+    // Dispose of all disposables (including the file watcher)
     while (this._disposables.length) {
       const disposable = this._disposables.pop();
       if (disposable) {
@@ -142,7 +183,7 @@ export class SetupGranitePage {
           <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}'; connect-src http://localhost">
+          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; connect-src http://localhost">
           <link rel="stylesheet" type="text/css" href="${stylesUri}">
           <title>Granite Code</title>
         </head>
@@ -161,9 +202,10 @@ export class SetupGranitePage {
    * @param webview A reference to the extension webview
    * @param context A reference to the extension context
    */
+  private debounceStatus = 0;
+
   private _setWebviewMessageListener(webview: Webview) {
     const server = new OllamaServer();
-    let debounceStatus = 0;
 
     webview.onDidReceiveMessage(
       async (message: any) => {
@@ -187,14 +229,14 @@ export class SetupGranitePage {
             // Careful here, we're receiving 2 messages in Dev mode on useEffect, because <App> is wrapped with <React.StrictMode>
             // see https://stackoverflow.com/questions/60618844/react-hooks-useeffect-is-called-twice-even-if-an-empty-array-is-used-as-an-ar
 
-            if (debounceStatus > 0) {
-              const elapsed = now - debounceStatus;
+            if (this.debounceStatus > 0) {
+              const elapsed = now - this.debounceStatus;
               if (elapsed < 1000) {
                 console.log("Debouncing fetchStatus :" + elapsed);
                 break;
               }
             }
-            debounceStatus = now;
+            this.debounceStatus = now;
 
             // console.log("Received fetchStatus msg " + debounceStatus);
             let models: string[];
