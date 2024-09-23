@@ -23,6 +23,7 @@ function App() {
   const [installationModes, setInstallationModes] = useState<{id:string, label:string}[]>([]);
 
   const [enabled, setEnabled] = useState<boolean>(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   function isAvailable(model: string): boolean {
     if (!model.includes(':')) {
@@ -99,10 +100,15 @@ function App() {
       case 'pull-progress': {
         const progress = payload.data.progress as ProgressData;
         const pulledModelName = progress.key;
+        const error = payload.data.error;
         //const progressData = data.progress as ProgressData;
         //find the ModelList component with the modelName value and update the progress
         //console.log(`Received pull-progress event ${pulledModelName} : ${progress}`);
         //console.log(`pulledModelName: ${pulledModelName} VS chatModel: ${chatModel}, tabModel: ${tabModel}, embeddingsModel: ${embeddingsModel}`);
+        if (error) {
+          setErrorMessage(`Error pulling model: ${error.message}`);
+          return;
+        }
         if (pulledModelName === chatModel) {
           //console.log(`Updating chat model progress to ${progress}`);
           setChatModelPullProgress(progress);
