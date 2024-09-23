@@ -11,9 +11,9 @@ import * as path from "path";
 import * as vscode from "vscode";
 
 export interface AiAssistantConfigurationRequest {
-  chatModelName: string;
-  tabModelName: string;
-  embeddingsModelName: string;
+  chatModelName: string | null;
+  tabModelName: string | null;
+  embeddingsModelName: string | null;
   inferenceEndpoint?: string;
   provider?: string;
   systemMessage?: string;
@@ -65,37 +65,46 @@ export class AiAssistantConfigurator {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const models: Model[] = config.models === undefined ? [] : config.models;
     // check if model object is already in the config json
-    const existing = models.find(
-      (m) => model.provider === m.provider && model.apiBase === m.apiBase
-    );
     let updateConfig = false;
-    if (existing) {
-      if (existing.model !== model.model || existing.title !== model.title) {
-        existing.model = model.model;
-        existing.title = model.title;
+    if (this.request.chatModelName) {
+      const existing = models.find(
+        (m) => model.provider === m.provider && model.apiBase === m.apiBase
+      );
+      if (existing) {
+        if (existing.model !== model.model || existing.title !== model.title) {
+          existing.model = model.model;
+          existing.title = model.title;
+          updateConfig = true;
+        }
+      } else {
+        models.push(model);
         updateConfig = true;
       }
-    } else {
-      models.push(model);
-      updateConfig = true;
+      config.models = models;
     }
-    config.models = models;
-    const tabAutocompleteModel: TabAutocompleteModel = {
-      title: this.request.tabModelName,
-      model: this.request.tabModelName,
-      provider: this.request.provider,
-    };
-    if (config.tabAutocompleteModel !== tabAutocompleteModel) {
-      config.tabAutocompleteModel = tabAutocompleteModel;
-      updateConfig = true;
+    // Configure tab autocomplete model if it exists
+    if (this.request.tabModelName) {
+      const tabAutocompleteModel: TabAutocompleteModel = {
+        title: this.request.tabModelName,
+        model: this.request.tabModelName,
+        provider: this.request.provider,
+      };
+      if (config.tabAutocompleteModel !== tabAutocompleteModel) {
+        config.tabAutocompleteModel = tabAutocompleteModel;
+        updateConfig = true;
+      }
     }
-    const embeddingsProvider = {
-      provider: 'ollama',
-      model: this.request.embeddingsModelName,
-    };
-    if (config.embeddingsProvider !== embeddingsProvider) {
-      config.embeddingsProvider = embeddingsProvider;
-      updateConfig = true;
+
+    // Configure embeddings model if it exists
+    if (this.request.embeddingsModelName) {
+      const embeddingsProvider = {
+        provider: 'ollama',
+        model: this.request.embeddingsModelName,
+      };
+      if (config.embeddingsProvider !== embeddingsProvider) {
+        config.embeddingsProvider = embeddingsProvider;
+        updateConfig = true;
+      }
     }
     if (updateConfig) {
       await writeConfig(configFile, config);
