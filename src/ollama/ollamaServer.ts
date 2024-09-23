@@ -14,7 +14,12 @@ const PLATFORM = os.platform();
 const OLLAMA_URL = "http://localhost:11434";
 
 export class OllamaServer implements IModelServer {
-  name!: "Ollama";
+
+  constructor(private name: string = "Ollama") { }
+
+  getName(): string {
+    return this.name;
+  }
 
   async supportedInstallModes(): Promise<{ id: string; label: string }[]> {
     const modes = [];
@@ -133,9 +138,9 @@ export class OllamaServer implements IModelServer {
   }
 
   async configureAssistant(
-    chatModelName: string,
-    tabModelName: string,
-    embeddingsModelName: string
+    chatModelName: string | null,
+    tabModelName: string | null,
+    embeddingsModelName: string | null
   ): Promise<void> {
     const request = {
       chatModelName,

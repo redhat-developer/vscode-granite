@@ -11,8 +11,8 @@ import {
   window,
 } from "vscode";
 import { ProgressData } from "../commons/progressData";
-import { IModelServer } from "../modelServer";
-import { OllamaServer } from "../ollama/ollamaServer";
+import { IModelServer } from '../modelServer';
+import { OllamaServer } from '../ollama/ollamaServer';
 import { getNonce } from "../utilities/getNonce";
 import { getUri } from "../utilities/getUri";
 
@@ -26,12 +26,20 @@ import { getUri } from "../utilities/getUri";
  * - Setting the HTML (and by proxy CSS/JavaScript) content of the webview panel
  * - Setting message listeners so data can be passed between the webview and extension
  */
+
+type GraniteConfiguration = {
+  tabModelId: string | null;
+  chatModelId: string | null;
+  embeddingsModelId: string | null;
+};
+
+
 export class SetupGranitePage {
   public static currentPanel: SetupGranitePage | undefined;
   private readonly _panel: WebviewPanel;
   private _disposables: Disposable[] = [];
   private _fileWatcher: fs.FSWatcher | undefined;
-
+  private server: IModelServer;
   /**
    * The HelloWorldPanel class private constructor (called only from the render method).
    *
@@ -40,7 +48,7 @@ export class SetupGranitePage {
    */
   private constructor(panel: WebviewPanel, extensionUri: Uri, extensionMode: ExtensionMode) {
     this._panel = panel;
-
+    this.server = new OllamaServer();
     // Set an event listener to listen for when the panel is disposed (i.e. when the user closes
     // the panel or when the panel is closed programmatically)
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
@@ -205,7 +213,6 @@ export class SetupGranitePage {
   private debounceStatus = 0;
 
   private _setWebviewMessageListener(webview: Webview) {
-    const server = new OllamaServer();
 
     webview.onDidReceiveMessage(
       async (message: any) => {
@@ -217,12 +224,12 @@ export class SetupGranitePage {
             webview.postMessage({
               command: "init",
               data: {
-                installModes: await server.supportedInstallModes(),
+                installModes: await this.server.supportedInstallModes(),
               },
             });
             break;
           case "installOllama":
-            await server.installServer(data.mode);
+            await this.server.installServer(data.mode);
             break;
           case "fetchStatus":
             const now = new Date().getTime();
@@ -241,18 +248,18 @@ export class SetupGranitePage {
             // console.log("Received fetchStatus msg " + debounceStatus);
             let models: string[];
             try {
-              models = await server.listModels();
+              models = await this.server.listModels();
               ollamaInstalled = true;
             } catch (e) {
               //TODO check error response code instead?
               models = [];
               if (!ollamaInstalled) {
                 //fall back to checking CLI
-                ollamaInstalled = await server.isServerInstalled();
+                ollamaInstalled = await this.server.isServerInstalled();
                 if (ollamaInstalled) {
                   try {
-                    await server.startServer();
-                    models = await server.listModels();
+                    await this.server.startServer();
+                    models = await this.server.listModels();
                   } catch (e) {}
                 }
               }
@@ -283,7 +290,7 @@ export class SetupGranitePage {
               },
             });
             try {
-              await setupGranite(data as GraniteConfiguration, reportProgress);
+              await this.setupGranite(data as GraniteConfiguration, reportProgress);
             } finally {
               webview.postMessage({
                 command: "page-update",
@@ -300,49 +307,48 @@ export class SetupGranitePage {
     );
   }
 
-}
-
-type GraniteConfiguration = {
-  tabModelId: string;
-  chatModelId: string;
-  embeddingsModelId: string;
-};
-
-
-
-
-async function setupGranite(
-  graniteConfiguration: GraniteConfiguration, reportProgress: (progress: ProgressData) => void): Promise<void> {
+  async setupGranite(
+    graniteConfiguration: GraniteConfiguration, reportProgress: (progress: ProgressData) => void): Promise<void> {
   //TODO handle continue (conflicting) onboarding page
 
-  console.log("Starting Granite Code AI-Assistant...");
-  const modelServer: IModelServer = new OllamaServer();
+    console.log("Starting Granite Code AI-Assistant...");
 
-  //collect all unique models to install, from graniteConfiguration
-  const modelsToInstall = new Set([graniteConfiguration.chatModelId, graniteConfiguration.tabModelId, graniteConfiguration.embeddingsModelId]);
+    //collect all unique models to install, from graniteConfiguration
+    const modelsToInstall = new Set<string>();
+    if (graniteConfiguration.chatModelId !== null) {
+      modelsToInstall.add(graniteConfiguration.chatModelId);
+    }
+    if (graniteConfiguration.tabModelId !== null) {
+      modelsToInstall.add(graniteConfiguration.tabModelId);
+    }
+    if (graniteConfiguration.embeddingsModelId !== null) {
+      modelsToInstall.add(graniteConfiguration.embeddingsModelId);
+    }
 
-  try {
-    for (const model of modelsToInstall) {
-      if (await modelServer.isModelInstalled(model)) {
-        console.log(`${model} is already installed`);
-      } else {
-        await modelServer.installModel(model, reportProgress);
+    try {
+      for (const model of modelsToInstall) {
+        if (await this.server.isModelInstalled(model)) {
+          console.log(`${model} is already installed`);
+        } else {
+          await this.server.installModel(model, reportProgress);
+        }
       }
+
+      this.server.configureAssistant(
+        graniteConfiguration.chatModelId,
+        graniteConfiguration.tabModelId,
+        graniteConfiguration.embeddingsModelId
+      );
+    } catch (error) {
+      //if error is CancellationError, then we can ignore it
+      if (error instanceof CancellationError) {
+        return;
+      }
+      throw error;
     }
 
-    modelServer.configureAssistant(
-      graniteConfiguration.chatModelId,
-      graniteConfiguration.tabModelId,
-      graniteConfiguration.embeddingsModelId
-    );
-  } catch (error) {
-    //if error is CancellationError, then we can ignore it
-    if (error instanceof CancellationError) {
-      return;
-    }
-    throw error;
+    commands.executeCommand("continue.continueGUIView.focus");
   }
 
-  commands.executeCommand("continue.continueGUIView.focus");
-
 }
+

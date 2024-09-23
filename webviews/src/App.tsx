@@ -1,18 +1,24 @@
 import { vscode } from "./utilities/vscode";
 import "./App.css";
 import { useCallback, useEffect, useState } from "react";
-import ModelList from "./ModelList";
+import ModelList, { ModelOption } from "./ModelList";
 import { FcCancel, FcCheckmark } from "react-icons/fc";
 import { ProgressData } from "../../src/commons/progressData";
 
 
 function App() {
-  const modelOptions: string[] = ['granite-code:3b', 'granite-code:8b', 'granite-code:20b', 'granite-code:34b'];
-  const embeddingsOptions: string[] = ['nomic-embed-text'];
-  const [tabModel, setTabModel] = useState<string>(modelOptions[0]);
-  const [chatModel, setChatModel] = useState<string>(modelOptions[2]);
-
-  const [embeddingsModel, setEmbeddingsModel] = useState<string>(embeddingsOptions[0]);
+  const modelOptions: ModelOption[] = [
+    { label: 'granite-code:3b', value: 'granite-code:3b', info: '2.0 GB' },
+    { label: 'granite-code:8b', value: 'granite-code:8b', info: '4.6 GB' },
+    { label: 'granite-code:20b', value: 'granite-code:20b', info: '12 GB' },
+    { label: 'granite-code:34b', value: 'granite-code:34b', info: '19 GB' }
+  ];
+  const embeddingsOptions: ModelOption[] = [
+    { label: 'nomic-embed-text', value: 'nomic-embed-text', info: '274 MB' }
+  ];
+  const [tabModel, setTabModel] = useState<string | null>(modelOptions[0].value);
+  const [chatModel, setChatModel] = useState<string | null>(modelOptions[2].value);
+  const [embeddingsModel, setEmbeddingsModel] = useState<string | null>(embeddingsOptions[0].value);
 
   const [chatModelPullProgress, setChatModelPullProgress] = useState<ProgressData | undefined>();
   const [tabModelPullProgress, setTabModelPullProgress] = useState<ProgressData | undefined>();
@@ -24,7 +30,10 @@ function App() {
 
   const [enabled, setEnabled] = useState<boolean>(true);
 
-  function isAvailable(model: string): boolean {
+  function isAvailable(model: string | null): boolean {
+    if (!model) {
+      return false;
+    }
     if (!model.includes(':')) {
       model = model + ':latest';
     }
@@ -85,7 +94,7 @@ function App() {
         setAvailableModels(data.models);
 
         //If everything is installed, clear the ollamaStatusChecker
-        if (status === "installed" && modelOptions.filter(isAvailable)?.length === modelOptions.length) {
+        if (status === "installed" && modelOptions.filter(model => isAvailable(model.value))?.length === modelOptions.length) {
           console.log("Clearing ollamaStatusChecker");
           ollamaStatusChecker = undefined;
         } else {
@@ -174,38 +183,35 @@ function App() {
       <ModelList
         label="Chat model"
         value={chatModel}
-        onChange={(e) => setChatModel(e.target.value)}
+        onChange={(e) => setChatModel(e?.value ?? null)}
         status={isAvailable(chatModel)}
         options={modelOptions}
         progress={chatModelPullProgress}
         disabled={!enabled}
       />
-      {/*TODO display embedded progress bar while model is being pulled? Add pull button? */}
 
       <ModelList
         label="Tab completion model"
         value={tabModel}
-        onChange={(e) => setTabModel(e.target.value)}
+        onChange={(e) => setTabModel(e?.value ?? null)}
         status={isAvailable(tabModel)}
         options={modelOptions}
         progress={tabModelPullProgress}
         disabled={!enabled}
       />
-      {/*TODO display embedded progress bar while model is being pulled? Add pull button? */}
 
       <ModelList
         label="Embeddings model"
         value={embeddingsModel}
-        onChange={(e) => setEmbeddingsModel(e.target.value)}
+        onChange={(e) => setEmbeddingsModel(e?.value ?? null)}
         status={isAvailable(embeddingsModel)}
         options={embeddingsOptions}
         progress={embeddingsModelPullProgress}
         disabled={!enabled}
       />
-      {/*TODO display embedded progress bar while model is being pulled? Add pull button? */}
 
-      <div className="form-group">
-        <button className="install-button" onClick={handleSetupGraniteClick} disabled={status !== 'installed' || !enabled}>Install Granite Code</button>
+      <div className="final-setup-group">
+        <button className="install-button" onClick={handleSetupGraniteClick} disabled={status !== 'installed' || !enabled}>Setup Granite Code</button>
       </div>
     </main>
   );
