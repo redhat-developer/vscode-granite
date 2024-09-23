@@ -108,7 +108,7 @@ export class AiAssistantConfigurator {
     }
     if (updateConfig) {
       await writeConfig(configFile, config);
-      return vscode.window.showInformationMessage(
+      vscode.window.showInformationMessage(
         `${model.model} added to ${configFile}`
       );
     }
