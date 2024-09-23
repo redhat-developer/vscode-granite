@@ -13,6 +13,7 @@ import {
 import { ProgressData } from "../commons/progressData";
 import { IModelServer } from '../modelServer';
 import { OllamaServer } from '../ollama/ollamaServer';
+import { Telemetry } from '../telemetry';
 import { getNonce } from "../utilities/getNonce";
 import { getUri } from "../utilities/getUri";
 
@@ -331,19 +332,34 @@ export class SetupGranitePage {
           console.log(`${model} is already installed`);
         } else {
           await this.server.installModel(model, reportProgress);
+          await Telemetry.send("granite.setup.model.install", {
+            model,
+          });
         }
       }
 
-      this.server.configureAssistant(
+      await this.server.configureAssistant(
         graniteConfiguration.chatModelId,
         graniteConfiguration.tabModelId,
         graniteConfiguration.embeddingsModelId
       );
-    } catch (error) {
+      console.log("Granite Code AI-Assistant setup complete, analytics will be sent now");
+      await Telemetry.send("granite.setup.success", {
+        chatModelId: graniteConfiguration.chatModelId ?? 'none',
+        tabModelId: graniteConfiguration.tabModelId ?? 'none',
+        embeddingsModelId: graniteConfiguration.embeddingsModelId ?? 'none',
+      });
+    } catch (error: any) {
       //if error is CancellationError, then we can ignore it
-      if (error instanceof CancellationError) {
+      if (error instanceof CancellationError || error?.name === "Canceled") {
         return;
       }
+      await Telemetry.send("granite.setup.error", {
+        error: error?.message ?? 'unknown error',
+        chatModelId: graniteConfiguration.chatModelId ?? 'none',
+        tabModelId: graniteConfiguration.tabModelId ?? 'none',
+        embeddingsModelId: graniteConfiguration.embeddingsModelId ?? 'none',
+      });
       throw error;
     }
 
