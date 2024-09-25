@@ -20,9 +20,9 @@ function App() {
   const [chatModel, setChatModel] = useState<string | null>(modelOptions[2].value);
   const [embeddingsModel, setEmbeddingsModel] = useState<string | null>(embeddingsOptions[0].value);
 
-  const [chatModelPullProgress, setChatModelPullProgress] = useState<ProgressData | undefined>();
-  const [tabModelPullProgress, setTabModelPullProgress] = useState<ProgressData | undefined>();
-  const [embeddingsModelPullProgress, setEmbeddingsModelPullProgress] = useState<ProgressData | undefined>();
+  const [modelPullProgress, setModelPullProgress] = useState<{
+    [key: string]: ProgressData | undefined
+  }>({});
 
   const [status, setStatus] = useState<string>('Unknown');
   const [availableModels, setAvailableModels] = useState<string[]>([]);
@@ -30,16 +30,16 @@ function App() {
 
   const [enabled, setEnabled] = useState<boolean>(true);
 
-  function isAvailable(model: string | null): boolean {
+  const isModelAvailable = useCallback((model: string | null): boolean => {
     if (!model) {
       return false;
     }
     if (!model.includes(':')) {
       model = model + ':latest';
     }
-    let result = availableModels && availableModels.length > 0 && availableModels.includes(model);
+    const result = availableModels && availableModels.length > 0 && availableModels.includes(model);
     return result;
-  }
+  }, [availableModels]);
 
   function requestStatus(): void {
     vscode.postMessage({
@@ -77,7 +77,6 @@ function App() {
 
   const handleMessage = useCallback((event: any) => {
     const payload = event.data;
-    //console.log(`Received event ${JSON.stringify(payload)}`);
     const command: string | undefined = payload.command;
     if (!command) {
       return;
@@ -93,37 +92,15 @@ function App() {
         setStatus(data.ollamaInstalled ? "installed" : "Not installed");
         setAvailableModels(data.models);
 
-        //If everything is installed, clear the ollamaStatusChecker
-        if (status === "installed" && modelOptions.filter(model => isAvailable(model.value))?.length === modelOptions.length) {
-          console.log("Clearing ollamaStatusChecker");
-          ollamaStatusChecker = undefined;
-        } else {
-          ollamaStatusChecker = setTimeout(
-            requestStatus,
-            REFETCH_MODELS_INTERVAL_MS,
-          );
-        }
         break;
       }
       case 'pull-progress': {
         const progress = payload.data.progress as ProgressData;
         const pulledModelName = progress.key;
-        //const progressData = data.progress as ProgressData;
-        //find the ModelList component with the modelName value and update the progress
-        //console.log(`Received pull-progress event ${pulledModelName} : ${progress}`);
-        //console.log(`pulledModelName: ${pulledModelName} VS chatModel: ${chatModel}, tabModel: ${tabModel}, embeddingsModel: ${embeddingsModel}`);
-        if (pulledModelName === chatModel) {
-          //console.log(`Updating chat model progress to ${progress}`);
-          setChatModelPullProgress(progress);
-        }
-        if (pulledModelName === tabModel) {
-          //console.log(`Updating tab model progress to ${progress}`);
-          setTabModelPullProgress(progress);
-        }
-        if (pulledModelName === embeddingsModel) {
-          //console.log(`Updating embeddings model progress to ${progress}`);
-          setEmbeddingsModelPullProgress(progress);
-        }
+        setModelPullProgress(prevProgress => ({
+          ...prevProgress,
+          [pulledModelName]: progress
+        }));
         break;
       }
       case 'page-update': {
@@ -133,25 +110,37 @@ function App() {
         break;
       }
     }
-  }, [chatModel, tabModel, embeddingsModel]);
+  }, []);
 
-  // Effect to send the init message when the component is mounted
   useEffect(() => {
-  // Listener for receiving messages from vscode
     window.addEventListener('message', handleMessage);
-
-    // Send init message to vscode
     init();
     requestStatus();
 
     return () => {
-      // When the component is unmounted, clear the ollamaStatusChecker and remove the event listener
       if (ollamaStatusChecker) {
         clearTimeout(ollamaStatusChecker);
       }
       window.removeEventListener('message', handleMessage);
     };
   }, [handleMessage]);
+
+  useEffect(() => {
+    if (status === "installed" && modelOptions.every(model => isModelAvailable(model.value))) {
+      console.log("Clearing ollamaStatusChecker");
+      if (ollamaStatusChecker) {
+        clearTimeout(ollamaStatusChecker);
+      }
+    } else {
+      ollamaStatusChecker = setTimeout(requestStatus, REFETCH_MODELS_INTERVAL_MS);
+    }
+
+    return () => {
+      if (ollamaStatusChecker) {
+        clearTimeout(ollamaStatusChecker);
+      }
+    };
+  }, [status, availableModels]);
 
   return (
     <main>
@@ -184,9 +173,9 @@ function App() {
         label="Chat model"
         value={chatModel}
         onChange={(e) => setChatModel(e?.value ?? null)}
-        status={isAvailable(chatModel)}
+        status={isModelAvailable(chatModel)}
         options={modelOptions}
-        progress={chatModelPullProgress}
+        progress={chatModel ? modelPullProgress[chatModel] : undefined}
         disabled={!enabled}
       />
 
@@ -194,9 +183,9 @@ function App() {
         label="Tab completion model"
         value={tabModel}
         onChange={(e) => setTabModel(e?.value ?? null)}
-        status={isAvailable(tabModel)}
+        status={isModelAvailable(tabModel)}
         options={modelOptions}
-        progress={tabModelPullProgress}
+        progress={tabModel ? modelPullProgress[tabModel] : undefined}
         disabled={!enabled}
       />
 
@@ -204,9 +193,9 @@ function App() {
         label="Embeddings model"
         value={embeddingsModel}
         onChange={(e) => setEmbeddingsModel(e?.value ?? null)}
-        status={isAvailable(embeddingsModel)}
+        status={isModelAvailable(embeddingsModel)}
         options={embeddingsOptions}
-        progress={embeddingsModelPullProgress}
+        progress={embeddingsModel ? modelPullProgress[embeddingsModel] : undefined}
         disabled={!enabled}
       />
 

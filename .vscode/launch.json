@@ -19,6 +19,22 @@
 			"env": {
 				"REDHAT_TELEMETRY_ENABLED": "true"
 			}
+		},
+		{
+			"name": "Run Extension w/ Mock Ollama",
+			"type": "extensionHost",
+			"request": "launch",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}"
+			],
+			"outFiles": [
+				"${workspaceFolder}/dist/**/*.js"
+			],
+			"preLaunchTask": "${defaultBuildTask}",
+			"env": {
+				"REDHAT_TELEMETRY_ENABLED": "false",
+				"MOCK_OLLAMA": "true"
+			}
 		}
 	]
 }

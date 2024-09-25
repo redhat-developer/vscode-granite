@@ -69,7 +69,7 @@ const ProgressBar: React.FC<{ data: ProgressData; id: string }> = ({ data, id })
     const remainingBits = data.total !== undefined && data.completed !== undefined ? data.total - data.completed : 0;
     const remainingSeconds = remainingBits > 0 && speed > 0 ? remainingBits / (speed * 1024 * 1024) : 0;
     setEstimatedCompletion(formatTime(remainingSeconds));
-  }, [data.completed]);
+  }, [data.status, data.completed]);
 
 
 
@@ -96,7 +96,8 @@ const ProgressBar: React.FC<{ data: ProgressData; id: string }> = ({ data, id })
     return `${mb.toFixed(2)} MB`;
   };
 
-  if (data.key !== id || speedHistory.length === 0) {
+
+  if (!data || data.key !== id || data.status?.toLowerCase() === 'success') {
     return <></>;
   }
 
