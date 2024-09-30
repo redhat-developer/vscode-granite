@@ -90,12 +90,12 @@ const ModelList: React.FC<ModelListProps> = ({ label, value, onChange, status, o
                     styles={customStyles}
                     formatOptionLabel={formatOptionLabel}
                 />
-                {!status && !progress && <label style={{ display: 'flex', alignItems: 'center' }}> (will be pulled automatically)</label>}
+                {!status && <label style={{ display: 'flex', alignItems: 'center' }}> (will be pulled automatically)</label>}
             </div>
 
             <div className='progress-container' style={{ width: "90%" }}>
                 {!status && progress && (
-                    <div id='progress' style={{ width: "100%" }}>
+                    <div id='progress' style={{ width: "100%", marginTop: "8px" }}>
                         <ProgressBar id={value!} data={progress} />
                     </div>
                 )}
