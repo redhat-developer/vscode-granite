@@ -20,9 +20,9 @@ function App() {
   const [chatModel, setChatModel] = useState<string | null>(modelOptions[2].value);
   const [embeddingsModel, setEmbeddingsModel] = useState<string | null>(embeddingsOptions[0].value);
 
-  const [modelPullProgress, setModelPullProgress] = useState<{
-    [key: string]: ProgressData | undefined
-  }>({});
+  const [chatModelPullProgress, setChatModelPullProgress] = useState<ProgressData | undefined>();
+  const [tabModelPullProgress, setTabModelPullProgress] = useState<ProgressData | undefined>();
+  const [embeddingsModelPullProgress, setEmbeddingsModelPullProgress] = useState<ProgressData | undefined>();
 
   const [status, setStatus] = useState<string>('Unknown');
   const [availableModels, setAvailableModels] = useState<string[]>([]);
@@ -30,16 +30,16 @@ function App() {
 
   const [enabled, setEnabled] = useState<boolean>(true);
 
-  const isModelAvailable = useCallback((model: string | null): boolean => {
+  function isAvailable(model: string | null): boolean {
     if (!model) {
       return false;
     }
     if (!model.includes(':')) {
       model = model + ':latest';
     }
-    const result = availableModels && availableModels.length > 0 && availableModels.includes(model);
+    let result = availableModels && availableModels.length > 0 && availableModels.includes(model);
     return result;
-  }, [availableModels]);
+  }
 
   function requestStatus(): void {
     vscode.postMessage({
@@ -77,6 +77,7 @@ function App() {
 
   const handleMessage = useCallback((event: any) => {
     const payload = event.data;
+    //console.log(`Received event ${JSON.stringify(payload)}`);
     const command: string | undefined = payload.command;
     if (!command) {
       return;
@@ -92,15 +93,37 @@ function App() {
         setStatus(data.ollamaInstalled ? "installed" : "Not installed");
         setAvailableModels(data.models);
 
+        //If everything is installed, clear the ollamaStatusChecker
+        if (status === "installed" && modelOptions.filter(model => isAvailable(model.value))?.length === modelOptions.length) {
+          console.log("Clearing ollamaStatusChecker");
+          ollamaStatusChecker = undefined;
+        } else {
+          ollamaStatusChecker = setTimeout(
+            requestStatus,
+            REFETCH_MODELS_INTERVAL_MS,
+          );
+        }
         break;
       }
       case 'pull-progress': {
         const progress = payload.data.progress as ProgressData;
         const pulledModelName = progress.key;
-        setModelPullProgress(prevProgress => ({
-          ...prevProgress,
-          [pulledModelName]: progress
-        }));
+        //const progressData = data.progress as ProgressData;
+        //find the ModelList component with the modelName value and update the progress
+        //console.log(`Received pull-progress event ${pulledModelName} : ${progress}`);
+        //console.log(`pulledModelName: ${pulledModelName} VS chatModel: ${chatModel}, tabModel: ${tabModel}, embeddingsModel: ${embeddingsModel}`);
+        if (pulledModelName === chatModel) {
+          //console.log(`Updating chat model progress to ${progress}`);
+          setChatModelPullProgress(progress);
+        }
+        if (pulledModelName === tabModel) {
+          //console.log(`Updating tab model progress to ${progress}`);
+          setTabModelPullProgress(progress);
+        }
+        if (pulledModelName === embeddingsModel) {
+          //console.log(`Updating embeddings model progress to ${progress}`);
+          setEmbeddingsModelPullProgress(progress);
+        }
         break;
       }
       case 'page-update': {
@@ -110,14 +133,19 @@ function App() {
         break;
       }
     }
-  }, []);
+  }, [chatModel, tabModel, embeddingsModel]);
 
+  // Effect to send the init message when the component is mounted
   useEffect(() => {
+  // Listener for receiving messages from vscode
     window.addEventListener('message', handleMessage);
+
+    // Send init message to vscode
     init();
     requestStatus();
 
     return () => {
+      // When the component is unmounted, clear the ollamaStatusChecker and remove the event listener
       if (ollamaStatusChecker) {
         clearTimeout(ollamaStatusChecker);
       }
@@ -125,83 +153,72 @@ function App() {
     };
   }, [handleMessage]);
 
-  useEffect(() => {
-    if (status === "installed" && modelOptions.every(model => isModelAvailable(model.value))) {
-      console.log("Clearing ollamaStatusChecker");
-      if (ollamaStatusChecker) {
-        clearTimeout(ollamaStatusChecker);
-      }
-    } else {
-      ollamaStatusChecker = setTimeout(requestStatus, REFETCH_MODELS_INTERVAL_MS);
-    }
-
-    return () => {
-      if (ollamaStatusChecker) {
-        clearTimeout(ollamaStatusChecker);
-      }
-    };
-  }, [status, availableModels]);
-
   return (
-    <main>
+    <main className="main-wrapper">
       <h1>Setup IBM Granite Code as your code assistant with Continue</h1>
 
-      <div className="form-group">
-        {status === 'installed' ? <FcCheckmark /> : <FcCancel />}
-        <label>Ollama status:</label>
-        <span>{status}</span>
-          {/* New section for additional buttons */}
-          {status !== 'installed' && installationModes.length > 0 && (
-          <div className="install-options">
-            <p><span>This page will refresh once Ollama is installed.</span></p>
-            {installationModes.map((mode) => (
-              <button
-                key={mode.id}
-                className="install-button"
-                onClick={() => handleInstallOllama(mode.id)}
-                disabled={!enabled}
-              >
-                {mode.label}
-              </button>
-            ))}
-            </div>
-          )}
+      <div className="form-group-wrapper">
+        <div className="form-group">
+          <div className="ollama-status-wrapper">
+            {status === 'installed' ? <FcCheckmark /> : <FcCancel />}
+            <label>Ollama status:</label>
+            <span>{status}</span>
+              {/* New section for additional buttons */}
+              {status !== 'installed' && installationModes.length > 0 && (
+              <div className="install-options">
+                <p><span>This page will refresh once Ollama is installed.</span></p>
+                {installationModes.map((mode) => (
+                  <button
+                    key={mode.id}
+                    className="install-button"
+                    onClick={() => handleInstallOllama(mode.id)}
+                    disabled={!enabled}
+                  >
+                    {mode.label}
+                  </button>
+                ))}
+                </div>
+              )}
+          </div>
+        </div>
+
+        {/* FIXME align labels and selects */}
+        <ModelList
+          label="Chat model"
+          value={chatModel}
+          onChange={(e) => setChatModel(e?.value ?? null)}
+          status={isAvailable(chatModel)}
+          options={modelOptions}
+          progress={chatModelPullProgress}
+          disabled={!enabled}
+        />
+
+        <ModelList
+          label="Tab completion model"
+          value={tabModel}
+          onChange={(e) => setTabModel(e?.value ?? null)}
+          status={isAvailable(tabModel)}
+          options={modelOptions}
+          progress={tabModelPullProgress}
+          disabled={!enabled}
+        />
+
+        <ModelList
+          label="Embeddings model"
+          value={embeddingsModel}
+          onChange={(e) => setEmbeddingsModel(e?.value ?? null)}
+          status={isAvailable(embeddingsModel)}
+          options={embeddingsOptions}
+          progress={embeddingsModelPullProgress}
+          disabled={!enabled}
+        />
+        
+        <div className="final-setup-group">
+          <button className="install-button" onClick={handleSetupGraniteClick} disabled={status !== 'installed' || !enabled}>Setup Granite Code</button>
+        </div>
       </div>
 
-      {/* FIXME align labels and selects */}
-      <ModelList
-        label="Chat model"
-        value={chatModel}
-        onChange={(e) => setChatModel(e?.value ?? null)}
-        status={isModelAvailable(chatModel)}
-        options={modelOptions}
-        progress={chatModel ? modelPullProgress[chatModel] : undefined}
-        disabled={!enabled}
-      />
 
-      <ModelList
-        label="Tab completion model"
-        value={tabModel}
-        onChange={(e) => setTabModel(e?.value ?? null)}
-        status={isModelAvailable(tabModel)}
-        options={modelOptions}
-        progress={tabModel ? modelPullProgress[tabModel] : undefined}
-        disabled={!enabled}
-      />
-
-      <ModelList
-        label="Embeddings model"
-        value={embeddingsModel}
-        onChange={(e) => setEmbeddingsModel(e?.value ?? null)}
-        status={isModelAvailable(embeddingsModel)}
-        options={embeddingsOptions}
-        progress={embeddingsModel ? modelPullProgress[embeddingsModel] : undefined}
-        disabled={!enabled}
-      />
-
-      <div className="final-setup-group">
-        <button className="install-button" onClick={handleSetupGraniteClick} disabled={status !== 'installed' || !enabled}>Setup Granite Code</button>
-      </div>
     </main>
   );
 }
