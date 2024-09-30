@@ -39,9 +39,9 @@ button {
   color: var(--vscode-button-foreground);
   border: none;
   padding: 8px 16px;
-  margin: 10px 5px;
+  margin: 5px;
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 button:hover {
@@ -65,4 +65,62 @@ button:disabled {
   align-self: flex-end;
   margin-top: 20px;
   margin-right: 15px;
+}
+.main-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.main-wrapper .form-group-wrapper {
+  width: 500px;
+  margin-bottom: 20px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--vscode-tree-tableColumnsBorder);
+  border-radius: 5px;
+}
+
+.main-wrapper .form-group-wrapper .form-group {
+  margin: 0 15px 15px;
+}
+
+.main-wrapper .form-group-wrapper .install-options {
+  padding: 8px 18px;
+}
+
+.main-wrapper .form-group-wrapper .ollama-status-wrapper {
+  width: calc(100% - 30px);
+  height: 100%;
+  padding: 15px;
+  border-radius: 5px;
+  background: var(--vscode-welcomePage-tileBackground);
+}
+
+.main-wrapper .form-group-wrapper .ollama-status-wrapper:hover {
+  background: var(--vscode-welcomePage-tileHoverBackground);
+}
+
+.main-wrapper .form-group-wrapper .ollama-status-wrapper label {
+  font-size: 15px;
+  font-weight: medium;
+}
+
+.main-wrapper .form-group-wrapper .ollama-status-wrapper span {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+@media (max-width: 767px) {
+  .main-wrapper .form-group-wrapper {
+    width: calc(100% - 50px);
+    outline: 1px solid rgb(43, 70, 4);
+  }
 }
