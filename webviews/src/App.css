@@ -49,23 +49,30 @@ button:hover {
 }
 
 /* Styling for disabled buttons */
+
 button:disabled {
-  background-color: var(--vscode-button-secondaryBackground);
-  color: var(--vscode-button-secondaryForeground);
-  cursor: not-allowed; /* Change cursor to 'not-allowed' */
-  opacity: 0.6; /* Reduce opacity for a disabled look */
-}
+  cursor: not-allowed;
+    opacity: 0.5;
+  }
+  
+  .progress-container {
+    width: calc(100% - 10px);
+    margin: 5px 0 0 10px;
+    background: var(--vscode-welcomePage-tileBackground);
+    border-radius: 5px;
+  }
 .progress-status {
   font-style: italic;
-  margin-bottom: 8px;
-  display: inline-block;
+  padding: 8px;
+    display: flex;
+    justify-content: space-between;
 }
 
 .final-setup-group {
   align-self: flex-end;
   margin-top: 20px;
-  margin-right: 15px;
 }
+
 .main-wrapper {
   width: 100%;
   height: 100%;
@@ -74,6 +81,13 @@ button:disabled {
   align-items: center;
   justify-content: center;
   margin-top: 20px;
+}
+
+.main-title {
+  font-size: 24px;
+  font-weight: bolder;
+  line-height: 1.2;
+  color: var(--vscode-editorGhostText-background);
 }
 
 .main-wrapper .form-group-wrapper {
@@ -104,23 +118,74 @@ button:disabled {
   background: var(--vscode-welcomePage-tileBackground);
 }
 
-.main-wrapper .form-group-wrapper .ollama-status-wrapper:hover {
+/* .main-wrapper .form-group-wrapper .ollama-status-wrapper:hover {
   background: var(--vscode-welcomePage-tileHoverBackground);
-}
+} */
 
 .main-wrapper .form-group-wrapper .ollama-status-wrapper label {
+  display: flex;
+  align-items: center;
   font-size: 15px;
-  font-weight: medium;
+  font-weight: normal;
 }
 
-.main-wrapper .form-group-wrapper .ollama-status-wrapper span {
+.main-wrapper .form-group-wrapper .model-list--label {
+  display: flex;
+  align-items: center;
+  min-width: 200px;
+  font-size: 15px;
+  font-weight: normal;
+}
+
+.main-wrapper .form-group-wrapper .ollama-status-wrapper label>span,
+.main-wrapper .form-group-wrapper .model-list--label>span {
+  font-weight: normal;
+  margin-left: 5px;
+}
+
+.main-wrapper .form-group-wrapper .ollama-status-wrapper label>span {
   font-size: 16px;
   font-weight: bold;
+}
+
+.main-wrapper .form-group-wrapper .model-list--outer-wrapper {
+  display: inline-flex;
+  vertical-align: middle;
+  align-items: baseline;
+  padding: 10px 0 0 15px;
+}
+
+.main-wrapper .form-group-wrapper .model-list>div {
+  background-color: transparent;
+}
+
+.main-wrapper .form-group-wrapper .model-list>div+.model-option--info {
+  color: goldenrod !important;
+}
+
+.main-wrapper .form-group-wrapper .model-list>div span {
+  color: var(--vscode-terminal-ansiWhite);
+}
+
+.main-wrapper .form-group-wrapper .info-label {
+  font-size: 14px;
+  font-weight: normal;
+  text-wrap: nowrap;
+  font-style: italic;
+  color: var(--vscode-terminal-background);
+  padding: 5px 5px 0;
 }
 
 @media (max-width: 767px) {
   .main-wrapper .form-group-wrapper {
     width: calc(100% - 50px);
     outline: 1px solid rgb(43, 70, 4);
+  }
+}
+
+@media (max-width: 467px) {
+  .main-wrapper .form-group-wrapper .model-list--outer-wrapper {
+    flex-wrap: wrap;
+    gap: 8px 16px;
   }
 }
