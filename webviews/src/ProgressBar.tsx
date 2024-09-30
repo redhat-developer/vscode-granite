@@ -69,7 +69,7 @@ const ProgressBar: React.FC<{ data: ProgressData; id: string }> = ({ data, id })
     const remainingBits = data.total !== undefined && data.completed !== undefined ? data.total - data.completed : 0;
     const remainingSeconds = remainingBits > 0 && speed > 0 ? remainingBits / (speed * 1024 * 1024) : 0;
     setEstimatedCompletion(formatTime(remainingSeconds));
-  }, [data.status, data.completed]);
+  }, [data.completed]);
 
 
 
@@ -96,17 +96,21 @@ const ProgressBar: React.FC<{ data: ProgressData; id: string }> = ({ data, id })
     return `${mb.toFixed(2)} MB`;
   };
 
-
-  if (!data || data.key !== id || data.status?.toLowerCase() === 'success') {
+  if (data.key !== id || speedHistory.length === 0) {
     return <></>;
   }
 
   return (
-    <div>
-      <label className="progress-status">{status}</label>
-      <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '10px' }}>
+    <div style={{ margin: '5px' }}>
+      <label className="progress-status">
+        {status}
+        <div style={{ fontSize: '12px', marginLeft: 'auto' }}>
+          {data.completed! < data.total! && `est. time: ~${estimatedCompletion}`}
+        </div>
+      </label>
+      <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '10px', marginTop: '5px' }}>
         <div style={{
-          flex: '0 0 80%',
+          flex: '0 0 100%',
           marginRight: '10px'
         }} >
           <div style={{
@@ -122,12 +126,9 @@ const ProgressBar: React.FC<{ data: ProgressData; id: string }> = ({ data, id })
               }}
             />
           </div>
-          <div style={{ textAlign: 'right', fontSize: '10px', marginTop: '5px' }}>
+          <div style={{ textAlign: 'right', fontSize: '10px', margin: '5px 0' }}>
             {completedSize.padStart(10)} / {totalSize.padStart(10)} at {speed.toFixed(2).padStart(7)} MB/s
           </div>
-        </div>
-        <div style={{ whiteSpace: 'nowrap', flex: '1', fontSize: '12px' }}>
-          {data.completed! < data.total! && `est. time: ~${estimatedCompletion}`}
         </div>
       </div>
     </div>
