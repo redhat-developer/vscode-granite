@@ -155,14 +155,18 @@ function App() {
 
   return (
     <main className="main-wrapper">
-      <h1>Setup IBM Granite Code as your code assistant with Continue</h1>
+      <h1 className="main-title">Setup IBM Granite Code as your code assistant with Continue</h1>
 
       <div className="form-group-wrapper">
         <div className="form-group">
           <div className="ollama-status-wrapper">
-            {status === 'installed' ? <FcCheckmark /> : <FcCancel />}
-            <label>Ollama status:</label>
-            <span>{status}</span>
+            
+            <label>
+              {status === 'installed' ? <FcCheckmark /> : <FcCancel />} 
+              <span>Ollama status:</span>
+              <span>{status}</span>
+            </label>
+            
               {/* New section for additional buttons */}
               {status !== 'installed' && installationModes.length > 0 && (
               <div className="install-options">
@@ -184,6 +188,7 @@ function App() {
 
         {/* FIXME align labels and selects */}
         <ModelList
+          className="model-list select--chat-model"
           label="Chat model"
           value={chatModel}
           onChange={(e) => setChatModel(e?.value ?? null)}
@@ -194,6 +199,7 @@ function App() {
         />
 
         <ModelList
+          className="model-list select--tab-model"
           label="Tab completion model"
           value={tabModel}
           onChange={(e) => setTabModel(e?.value ?? null)}
@@ -204,6 +210,7 @@ function App() {
         />
 
         <ModelList
+          className="model-list select--embedding-model"
           label="Embeddings model"
           value={embeddingsModel}
           onChange={(e) => setEmbeddingsModel(e?.value ?? null)}
