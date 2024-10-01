@@ -172,7 +172,6 @@ export class MockServer extends OllamaServer implements IModelServer {
 
         const added = Math.min(this.speed * (interval / 1000), layer.size - layer.progress);
         layer.progress += added;
-        //TODO, for granite-code:34b, throw an exception once we reach 10%
         const increment = Math.round(100 * added / layer.size);
 
         progressReporter.report({
@@ -182,6 +181,12 @@ export class MockServer extends OllamaServer implements IModelServer {
           completed: layer.progress,
           total: layer.size
         });
+
+        // Throw error if model is "granite-code:34b" and we reach 10% progress
+        if (modelName === "granite-code:34b" && layer.progress / layer.size >= 0.1) {
+          reject(new Error('Simulated error: Insufficient space while pulling granite-code:34b.'));
+          return;
+        }
 
         if (layer.progress >= layer.size) {
           resolve();
@@ -193,6 +198,7 @@ export class MockServer extends OllamaServer implements IModelServer {
       updateProgress();
     });
   }
+
   async supportedInstallModes(): Promise<{ id: string; label: string; }[]> {
     return Promise.resolve([{ id: 'mock', label: 'Install Magically' }, { id: 'manual', label: 'Install Manually' }]);
   }
@@ -209,7 +215,10 @@ export class MockServer extends OllamaServer implements IModelServer {
     tabModelName: string | null,
     embeddingsModelName: string | null
   ): Promise<void> {
-    //TODO, if chatModelName=granite-code:3b and tabModelName=granite-code:20b, throw an exception
+    // Throw an error if conflicting models are selected
+    if (chatModelName === "granite-code:3b" && tabModelName === "granite-code:20b") {
+      throw new Error('Simulated error: Conflicting models selected for chat and tab completion.');
+    }
     super.configureAssistant(chatModelName, tabModelName, embeddingsModelName);
   }
 }
