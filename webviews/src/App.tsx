@@ -143,64 +143,73 @@ function App() {
   }, [status, availableModels]);
 
   return (
-    <main>
-      <h1>Setup IBM Granite Code as your code assistant with Continue</h1>
+    <main className="main-wrapper">
+      <h1 className="main-title">Setup IBM Granite Code as your code assistant with Continue</h1>
 
-      <div className="form-group">
-        {status === 'installed' ? <FcCheckmark /> : <FcCancel />}
-        <label>Ollama status:</label>
-        <span>{status}</span>
-          {/* New section for additional buttons */}
-          {status !== 'installed' && installationModes.length > 0 && (
-          <div className="install-options">
-            <p><span>This page will refresh once Ollama is installed.</span></p>
-            {installationModes.map((mode) => (
-              <button
-                key={mode.id}
-                className="install-button"
-                onClick={() => handleInstallOllama(mode.id)}
-                disabled={!enabled}
-              >
-                {mode.label}
-              </button>
-            ))}
+      <div className="form-group-wrapper">
+        <div className="form-group">
+          <div className="ollama-status-wrapper">
+            <label>
+              {status === 'installed' ? <FcCheckmark /> : <FcCancel />} 
+              <span>Ollama status:</span>
+              <span>{status}</span>
+            </label>
+              {/* New section for additional buttons */}
+              {status !== 'installed' && installationModes.length > 0 && (
+              <div className="install-options">
+                <p><span>This page will refresh once Ollama is installed.</span></p>
+                {installationModes.map((mode) => (
+                  <button
+                    key={mode.id}
+                    className="install-button"
+                    onClick={() => handleInstallOllama(mode.id)}
+                    disabled={!enabled}
+                  >
+                    {mode.label}
+                  </button>
+                ))}
+                </div>
+              )}
             </div>
-          )}
-      </div>
+        </div>
 
-      {/* FIXME align labels and selects */}
-      <ModelList
-        label="Chat model"
-        value={chatModel}
-        onChange={(e) => setChatModel(e?.value ?? null)}
-        status={isModelAvailable(chatModel)}
-        options={modelOptions}
-        progress={chatModel ? modelPullProgress[chatModel] : undefined}
-        disabled={!enabled}
-      />
+        {/* FIXME align labels and selects */}
+        <ModelList
+          className="model-list select--chat-model"
+          label="Chat model"
+          value={chatModel}
+          onChange={(e) => setChatModel(e?.value ?? null)}
+          status={isModelAvailable(chatModel)}
+          options={modelOptions}
+          progress={chatModel ? modelPullProgress[chatModel] : undefined}
+          disabled={!enabled}
+        />
 
-      <ModelList
-        label="Tab completion model"
-        value={tabModel}
-        onChange={(e) => setTabModel(e?.value ?? null)}
-        status={isModelAvailable(tabModel)}
-        options={modelOptions}
-        progress={tabModel ? modelPullProgress[tabModel] : undefined}
-        disabled={!enabled}
-      />
+        <ModelList
+          className="model-list select--chat-model"
+          label="Tab completion model"
+          value={tabModel}
+          onChange={(e) => setTabModel(e?.value ?? null)}
+          status={isModelAvailable(tabModel)}
+          options={modelOptions}
+          progress={tabModel ? modelPullProgress[tabModel] : undefined}
+          disabled={!enabled}
+        />
 
-      <ModelList
-        label="Embeddings model"
-        value={embeddingsModel}
-        onChange={(e) => setEmbeddingsModel(e?.value ?? null)}
-        status={isModelAvailable(embeddingsModel)}
-        options={embeddingsOptions}
-        progress={embeddingsModel ? modelPullProgress[embeddingsModel] : undefined}
-        disabled={!enabled}
-      />
+        <ModelList
+          className="model-list select--chat-model"
+          label="Embeddings model"
+          value={embeddingsModel}
+          onChange={(e) => setEmbeddingsModel(e?.value ?? null)}
+          status={isModelAvailable(embeddingsModel)}
+          options={embeddingsOptions}
+          progress={embeddingsModel ? modelPullProgress[embeddingsModel] : undefined}
+          disabled={!enabled}
+        />
 
-      <div className="final-setup-group">
-        <button className="install-button" onClick={handleSetupGraniteClick} disabled={status !== 'installed' || !enabled}>Setup Granite Code</button>
+        <div className="final-setup-group">
+          <button className="install-button" onClick={handleSetupGraniteClick} disabled={status !== 'installed' || !enabled}>Setup Granite Code</button>
+        </div>
       </div>
     </main>
   );
