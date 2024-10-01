@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import { env } from 'process';
 import {
+  CancellationError,
   commands,
   Disposable,
   ExtensionMode,
@@ -355,6 +356,10 @@ export class SetupGranitePage {
         embeddingsModelId: graniteConfiguration.embeddingsModelId ?? 'none',
       });
     } catch (error: any) {
+      //if error is CancellationError, then we can ignore it
+      if (error instanceof CancellationError || error?.name === "Canceled") {
+        return;
+      }
       // Generic error handling for all errors
       await Telemetry.send("granite.setup.error", {
         error: error?.message ?? 'unknown error',
