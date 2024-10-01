@@ -223,7 +223,8 @@ function App() {
       <div className="final-setup-group">
         <button className="install-button" onClick={handleSetupGraniteClick} disabled={status !== 'installed' || !enabled}>Setup Granite Code</button>
       </div>
-    </main>
+    </div>
+  </main>
   );
 }
 
