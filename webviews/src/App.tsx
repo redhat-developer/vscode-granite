@@ -109,15 +109,6 @@ function App() {
         setEnabled(!disabled);
         break;
       }
-      case 'error': {
-        // Generic error handling: capture the error from the backend and display it to the user
-        const errorMessage = payload.data.error;
-        alert(`An error occurred: ${errorMessage}`);
-
-        // Re-enable the UI so the user can try again
-        setEnabled(true);
-        break;
-      }
     }
   }, []);
 
