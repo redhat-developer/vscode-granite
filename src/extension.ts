@@ -1,4 +1,5 @@
 import { commands, ExtensionContext } from "vscode";
+import { isDevMode } from "./commons/constants";
 import { SetupGranitePage } from "./panels/setupGranitePage";
 import { Telemetry } from "./telemetry";
 
@@ -9,6 +10,9 @@ export async function activate(context: ExtensionContext) {
     SetupGranitePage.render(context.extensionUri, context.extensionMode);
   });
   context.subscriptions.push(setupGraniteCmd);
-  // TODO check initial startup status
-  return commands.executeCommand('vscode-granite.setup');
+  const hasRunBefore = context.globalState.get('hasRunSetup', false);
+  if (!hasRunBefore || isDevMode) {
+    await context.globalState.update('hasRunSetup', true);
+    return commands.executeCommand('vscode-granite.setup');
+  }
 }

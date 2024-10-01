@@ -17,7 +17,8 @@
 			],
 			"preLaunchTask": "${defaultBuildTask}",
 			"env": {
-				"REDHAT_TELEMETRY_ENABLED": "true"
+				"REDHAT_TELEMETRY_ENABLED": "true",
+				"GRANITE_EXT_DEV_MODE": "true"
 			}
 		},
 		{
@@ -33,7 +34,8 @@
 			"preLaunchTask": "${defaultBuildTask}",
 			"env": {
 				"REDHAT_TELEMETRY_ENABLED": "false",
-				"MOCK_OLLAMA": "true"
+				"MOCK_OLLAMA": "true",
+				"GRANITE_EXT_DEV_MODE": "true"
 			}
 		}
 	]
