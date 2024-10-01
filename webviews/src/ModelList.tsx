@@ -91,25 +91,19 @@ const ModelList: React.FC<ModelListProps> = ({ className, label, value, onChange
 
     return (
         <div className="form-group">
-            <div className='model-list--outer-wrapper'>
-                
-                <label className='model-list--label' htmlFor={label}>
-                    {status ? <FcCheckmark /> : <FcCancel />} 
-                    <span>{label}:</span>
-                </label>
-                <div className={className + `--wrapper`}>
-                    <Select
-                        className={className}
-                        id={label}
-                        value={options.find(option => option.value === value)}
-                        onChange={(newValue) => onChange(newValue as ModelOption)}
-                        options={options}
-                        isDisabled={disabled}
-                        styles={customStyles}
-                        formatOptionLabel={formatOptionLabel}
-                    />
-                    {!status && <span className='info-label' style={{ display: 'flex', alignItems: 'center' }}> (will be pulled automatically)</span>}
-                </div>
+            <div style={{ display: 'inline-flex', verticalAlign: 'middle', alignItems: 'center' }}>
+                {status ? <FcCheckmark /> : <FcCancel />}
+                <label htmlFor={label} style={{ minWidth: '200px', display: 'flex', alignItems: 'center' }}>{label}:</label>
+                <Select
+                    id={label}
+                    value={options.find(option => option.value === value)}
+                    onChange={(newValue) => onChange(newValue as ModelOption)}
+                    options={options}
+                    isDisabled={disabled}
+                    styles={customStyles}
+                    formatOptionLabel={formatOptionLabel}
+                />
+                {!status && <label style={{ display: 'flex', alignItems: 'center' }}> (will be pulled automatically)</label>}
             </div>
 
             <div className='progress-container'>

@@ -225,7 +225,43 @@ function App() {
         </div>
       </div>
 
+      {/* FIXME align labels and selects */}
+      <ModelList
+        className="model-list select--chat-model"
+        label="Chat model"
+        value={chatModel}
+        onChange={(e) => setChatModel(e?.value ?? null)}
+        status={isAvailable(chatModel)}
+        options={modelOptions}
+        progress={chatModelPullProgress}
+        disabled={!enabled}
+      />
 
+      <ModelList
+        className="model-list select--chat-model"
+        label="Tab completion model"
+        value={tabModel}
+        onChange={(e) => setTabModel(e?.value ?? null)}
+        status={isAvailable(tabModel)}
+        options={modelOptions}
+        progress={tabModelPullProgress}
+        disabled={!enabled}
+      />
+
+      <ModelList
+        className="model-list select--chat-model"
+        label="Embeddings model"
+        value={embeddingsModel}
+        onChange={(e) => setEmbeddingsModel(e?.value ?? null)}
+        status={isAvailable(embeddingsModel)}
+        options={embeddingsOptions}
+        progress={embeddingsModelPullProgress}
+        disabled={!enabled}
+      />
+
+      <div className="final-setup-group">
+        <button className="install-button" onClick={handleSetupGraniteClick} disabled={status !== 'installed' || !enabled}>Setup Granite Code</button>
+      </div>
     </main>
   );
 }

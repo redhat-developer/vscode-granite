@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import { env } from 'process';
 import {
   CancellationError,
   commands,
@@ -13,7 +12,6 @@ import {
 } from "vscode";
 import { ProgressData } from "../commons/progressData";
 import { IModelServer } from '../modelServer';
-import { MockServer } from '../ollama/mockServer';
 import { OllamaServer } from '../ollama/ollamaServer';
 import { Telemetry } from '../telemetry';
 import { getNonce } from "../utilities/getNonce";
@@ -36,7 +34,6 @@ type GraniteConfiguration = {
   embeddingsModelId: string | null;
 };
 
-const useMockServer = env['MOCK_OLLAMA'] === 'true';
 
 export class SetupGranitePage {
   public static currentPanel: SetupGranitePage | undefined;
@@ -52,9 +49,7 @@ export class SetupGranitePage {
    */
   private constructor(panel: WebviewPanel, extensionUri: Uri, extensionMode: ExtensionMode) {
     this._panel = panel;
-    this.server = useMockServer ?
-      new MockServer(300) :
-      new OllamaServer();
+    this.server = new OllamaServer();
     // Set an event listener to listen for when the panel is disposed (i.e. when the user closes
     // the panel or when the panel is closed programmatically)
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
@@ -244,7 +239,7 @@ export class SetupGranitePage {
 
             if (this.debounceStatus > 0) {
               const elapsed = now - this.debounceStatus;
-              if (elapsed < 50) {
+              if (elapsed < 1000) {
                 console.log("Debouncing fetchStatus :" + elapsed);
                 break;
               }
@@ -317,7 +312,7 @@ export class SetupGranitePage {
     graniteConfiguration: GraniteConfiguration, reportProgress: (progress: ProgressData) => void): Promise<void> {
   //TODO handle continue (conflicting) onboarding page
 
-    console.log("Starting Granite Code AI-Assistant configuration...");
+    console.log("Starting Granite Code AI-Assistant...");
 
     //collect all unique models to install, from graniteConfiguration
     const modelsToInstall = new Set<string>();
@@ -348,7 +343,7 @@ export class SetupGranitePage {
         graniteConfiguration.tabModelId,
         graniteConfiguration.embeddingsModelId
       );
-      console.log("Granite Code AI-Assistant setup complete");
+      console.log("Granite Code AI-Assistant setup complete, analytics will be sent now");
       await Telemetry.send("granite.setup.success", {
         chatModelId: graniteConfiguration.chatModelId ?? 'none',
         tabModelId: graniteConfiguration.tabModelId ?? 'none',
