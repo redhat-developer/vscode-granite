@@ -1,22 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ProgressData } from "../../src/commons/progressData";
-
-// Utility function to format time remaining
-const formatTime = (seconds: number) => {
-  if (seconds < 60) {
-    return `${Math.round(seconds)}s`;
-  } else if (seconds < 900) { // 15 minutes
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.round(seconds % 60);
-    return `${minutes}m ${remainingSeconds}s`;
-  } else if (seconds < 3600) {
-    return `${Math.round(seconds / 60)}m`;
-  } else {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.round((seconds % 3600) / 60);
-    return `${hours}h ${minutes}m`;
-  }
-};
+import { formatSize, formatTime } from '../../src/commons/textUtils';
+import { MB } from "../../src/commons/sizeUtils";
 
 // The ProgressBar component
 const ProgressBar: React.FC<{ data: ProgressData; id: string }> = ({ data, id }) => {
@@ -42,8 +27,8 @@ const ProgressBar: React.FC<{ data: ProgressData; id: string }> = ({ data, id })
     const timeDiff = (now - lastUpdateTime) / 1000; // Convert to seconds
 
     // Calculate speed in MB/s
-    const completedMB = data.completed !== undefined ? data.completed / (1024 * 1024) : 0;
-    const prevCompletedMB = previousCompleted !== undefined ? previousCompleted / (1024 * 1024) : 0;
+    const completedMB = data.completed !== undefined ? data.completed / MB : 0;
+    const prevCompletedMB = previousCompleted !== undefined ? previousCompleted / MB : 0;
     const deltaMB = Math.max(0, completedMB - prevCompletedMB); // Ensure non-negative delta
     setStatus(data.status);
     // Update speed (MB/s)
@@ -62,12 +47,12 @@ const ProgressBar: React.FC<{ data: ProgressData; id: string }> = ({ data, id })
     setLastUpdateTime(now);
 
     // Update size and progress information
-    setCompletedSize(data.completed !== undefined ? formatSize(data.completed) : "0 MB");
-    setTotalSize(data.total !== undefined ? formatSize(data.total) : "0 MB");
+    setCompletedSize(formatSize(data.completed || 0, 2));
+    setTotalSize(formatSize(data.total || 0, 2));
     setProgressPercentage(data.completed !== undefined && data.total !== undefined ? (data.completed / data.total) * 100 : 0);
 
     const remainingBits = data.total !== undefined && data.completed !== undefined ? data.total - data.completed : 0;
-    const remainingSeconds = remainingBits > 0 && speed > 0 ? remainingBits / (speed * 1024 * 1024) : 0;
+    const remainingSeconds = remainingBits > 0 && speed > 0 ? remainingBits / (speed * MB) : 0;
     setEstimatedCompletion(formatTime(remainingSeconds));
   }, [data.status, data.completed]);
 
@@ -87,15 +72,6 @@ const ProgressBar: React.FC<{ data: ProgressData; id: string }> = ({ data, id })
     setProgressPercentage(0);
     setEstimatedCompletion("Universe heat death");
   }, [id]);
-
-  const formatSize = (bytes: number) => {
-    const mb = bytes / (1024 * 1024);
-    if (mb >= 1024) {
-      return `${(mb / 1024).toFixed(2)} GB`;
-    }
-    return `${mb.toFixed(2)} MB`;
-  };
-
 
   if (!data || data.key !== id || data.status?.toLowerCase() === 'success') {
     return <></>;
@@ -127,9 +103,11 @@ const ProgressBar: React.FC<{ data: ProgressData; id: string }> = ({ data, id })
               }}
             />
           </div>
-          <div style={{ textAlign: 'right', fontSize: '10px', margin: '5px 0' }}>
-            {completedSize.padStart(10)} / {totalSize.padStart(10)} at {speed.toFixed(2).padStart(7)} MB/s
-          </div>
+          {data.total && (
+            <div style={{ textAlign: 'right', fontSize: '10px', margin: '5px 0' }}>
+              {formatSize(data.completed || 0, 2).padStart(10)} / {formatSize(data.total, 2).padStart(10)} at {speed.toFixed(2).padStart(7)} MB/s
+            </div>
+          )}
         </div>
       </div>
     </div>

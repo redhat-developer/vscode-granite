@@ -88,6 +88,7 @@ button:disabled {
   justify-content: flex-start;
   width: 500px;
 }
+
 .main-wrapper {
   width: 100%;
   height: 100%;
@@ -215,6 +216,7 @@ button:disabled {
   line-height: 1.2rem;
   color: var(--vscode-terminal-background);
 }
+
 /* Toggle Switch (with label) */
 .switch-toggle-wrapper {
   display: flex;
@@ -328,6 +330,7 @@ button:disabled {
 
 /* Don't add CSS below @media query section */
 @media (max-width: 767px) {
+
   .info-message,
   .main-description,
   .main-wrapper .form-group-wrapper {
@@ -344,8 +347,31 @@ button:disabled {
     flex-wrap: wrap;
     gap: 8px 16px;
   }
-  
+
   .main-wrapper .form-group-wrapper .model-list {
     min-width: initial;
   }
+}
+
+.model-warning {
+  margin-top: 8px;
+  font-size: 12px;
+  width: 100%;
+  padding: 0 22px;
+}
+
+.warning-message {
+  color: var(--vscode-notificationsWarningIcon-foreground);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.error-message {
+  color: var(--vscode-notificationsErrorIcon-foreground);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }

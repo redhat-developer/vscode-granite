@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ModelList, { ModelOption } from './ModelList';
 import { ModelStatus } from '../../src/commons/statuses';
+import { SystemInfo } from '../../src/commons/sysInfo';
 
 describe('ModelList Component', () => {
   const modelOptions: ModelOption[] = [
@@ -19,6 +20,7 @@ describe('ModelList Component', () => {
         onChange={onChangeMock}
         status={ModelStatus.installed}
         options={modelOptions}
+        systemInfo={null}
       />
     );
 
@@ -36,6 +38,7 @@ describe('ModelList Component', () => {
         onChange={onChangeMock}
         status={ModelStatus.missing}
         options={modelOptions}
+        systemInfo={null}
       />
     );
 
@@ -58,9 +61,10 @@ describe('ModelList Component', () => {
         className="test-class"
         label="Chat model"
         value="model-a"
-        onChange={() => {}}
+        onChange={() => { }}
         status={ModelStatus.missing}
         options={modelOptions}
+        systemInfo={null}
       />
     );
 
@@ -73,9 +77,10 @@ describe('ModelList Component', () => {
         className="test-class"
         label="Chat model"
         value="model-a"
-        onChange={() => {}}
+        onChange={() => { }}
         status={ModelStatus.installed}
         options={modelOptions}
+        systemInfo={null}
       />
     );
 
@@ -88,10 +93,11 @@ describe('ModelList Component', () => {
         className="test-class"
         label="Chat model"
         value="model-a"
-        onChange={() => {}}
+        onChange={() => { }}
         status={ModelStatus.installed}
         options={modelOptions}
         disabled={true}
+        systemInfo={null}
       />
     );
 

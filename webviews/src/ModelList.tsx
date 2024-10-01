@@ -4,6 +4,9 @@ import { ProgressData } from '../../src/commons/progressData';
 import ProgressBar from './ProgressBar';
 import { StatusCheck, StatusValue } from './StatusCheck';
 import { ModelStatus } from '../../src/commons/statuses';
+import { checkModelCompatibility } from '../../src/commons/modelRequirements';
+import ModelWarning from './ModelWarning';
+import { SystemInfo } from '../../src/commons/sysInfo';
 
 export interface ModelOption {
     label: string;
@@ -21,9 +24,10 @@ interface ModelListProps {
     progress?: ProgressData;
     tooltip?: string;
     disabled?: boolean;
+    systemInfo: SystemInfo | null;
 }
 
-const ModelList: React.FC<ModelListProps> = ({ className, label, value, onChange, status, options, progress, tooltip, disabled }) => {
+const ModelList: React.FC<ModelListProps> = ({ className, label, value, onChange, status, options, progress, tooltip, disabled, systemInfo }) => {
     const selectHeight = '16px';
     const customStyles = {
         container: (base: any) => ({
@@ -118,6 +122,8 @@ const ModelList: React.FC<ModelListProps> = ({ className, label, value, onChange
         }
     };
 
+    const { warnings, errors } = checkModelCompatibility(value, systemInfo);
+
     return (
         <div className="form-group">
             <div className='model-list--outer-wrapper'>
@@ -142,6 +148,8 @@ const ModelList: React.FC<ModelListProps> = ({ className, label, value, onChange
                     {status !== null && status !== ModelStatus.installed && !progress && <span className='info-label' style={{ display: 'flex', alignItems: 'center' }}> {getStatusLabel(status)}</span>}
                 </div >
             </div >
+
+            <ModelWarning warnings={warnings} errors={errors} />
 
             <div className='progress-container'>
                 {progress && (

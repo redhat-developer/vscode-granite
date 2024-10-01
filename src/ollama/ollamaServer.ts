@@ -70,7 +70,7 @@ export class OllamaServer implements IModelServer {
     //check if ollama is installed
     try {
       await executeCommand("ollama", ["-v"]);
-      console.log("Ollama is installed");
+      //console.log("Ollama is installed");
       return true;
     } catch (error: any) {
       console.log("Ollama is NOT installed: " + error?.message);
@@ -82,12 +82,11 @@ export class OllamaServer implements IModelServer {
     //check if ollama is installed
     try {
       await this.getTags();
-      console.log("Ollama server is started");
+      //console.log("Ollama server is started");
       return true;
-    } catch (error) {
+    } catch (error: any) {
       //TODO Check error
-      console.log("Ollama server is NOT started");
-      console.log(error);
+      console.log("Ollama server is NOT started", error?.message);
       return false;
     }
   }

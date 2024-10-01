@@ -16,10 +16,11 @@ import { ProgressData } from "../commons/progressData";
 import { ModelStatus, ServerStatus } from '../commons/statuses';
 import { IModelServer } from '../modelServer';
 import { MockServer } from '../ollama/mockServer';
-import { OllamaServer } from '../ollama/ollamaServer';
+import { OllamaServer } from "../ollama/ollamaServer";
 import { Telemetry } from '../telemetry';
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
+import { getSystemInfo } from "../utils/sysUtils";
 
 /**
  * This class manages the state and behavior of HelloWorld webview panels.
@@ -234,6 +235,7 @@ export class SetupGranitePage {
               command: "init",
               data: {
                 installModes: await this.server.supportedInstallModes(),
+                systemInfo: await getSystemInfo()
               },
             });
             break;
