@@ -6,29 +6,43 @@ import { ProgressData } from "../../src/commons/progressData";
 import { getStandardName } from "../../src/commons/naming";
 import { ModelStatus, ServerStatus } from "../../src/commons/statuses";
 import { StatusCheck, StatusValue } from "./StatusCheck";
+import { checkCombinedDiskSpace, MODEL_REQUIREMENTS } from '../../src/commons/modelRequirements';
+import ModelWarning from './ModelWarning';
+import { formatSize } from "../../src/commons/textUtils";
+import { getRecommendedModels } from "../../src/commons/sysInfo";
 
 function App() {
   const modelOptions: ModelOption[] = [
-    { label: "granite3-dense:2b", value: "granite3-dense:2b", info: "1.6 GB" },
-    { label: "granite3-dense:8b", value: "granite3-dense:8b", info: "4.9 GB" },
-    { label: "granite-code:3b", value: "granite-code:3b", info: "2.0 GB" },
-    { label: "granite-code:8b", value: "granite-code:8b", info: "4.6 GB" },
+    {
+      label: "granite3-dense:2b",
+      value: "granite3-dense:2b",
+      info: formatSize(MODEL_REQUIREMENTS["granite3-dense:2b"].sizeBytes)
+    },
+    {
+      label: "granite3-dense:8b",
+      value: "granite3-dense:8b",
+      info: formatSize(MODEL_REQUIREMENTS["granite3-dense:8b"].sizeBytes)
+    },
+    {
+      label: "granite-code:3b",
+      value: "granite-code:3b",
+      info: formatSize(MODEL_REQUIREMENTS["granite-code:3b"].sizeBytes)
+    },
+    {
+      label: "granite-code:8b",
+      value: "granite-code:8b",
+      info: formatSize(MODEL_REQUIREMENTS["granite-code:8b"].sizeBytes)
+    },
     { label: "Keep existing configuration", value: null, info: null },
   ];
 
-  const tabOptions: ModelOption[] = [
-    { label: "granite3-dense:2b", value: "granite3-dense:2b", info: "1.6 GB" },
-    { label: "granite3-dense:8b", value: "granite3-dense:8b", info: "4.9 GB" },
-    { label: "granite-code:3b", value: "granite-code:3b", info: "2.0 GB" },
-    { label: "granite-code:8b", value: "granite-code:8b", info: "4.6 GB" },
-    { label: "Keep existing configuration", value: null, info: null },
-  ];
+  const tabOptions: ModelOption[] = [...modelOptions]; // Since they're the same options
 
   const embeddingsOptions: ModelOption[] = [
     {
       label: "nomic-embed-text",
       value: "nomic-embed-text:latest",
-      info: "274 MB",
+      info: formatSize(MODEL_REQUIREMENTS["nomic-embed-text:latest"].sizeBytes),
     },
     { label: "Keep existing configuration", value: null, info: null },
   ];
@@ -42,6 +56,7 @@ function App() {
   const [embeddingsModel, setEmbeddingsModel] = useState<string | null>(
     embeddingsOptions[0].value
   );
+  const [systemInfo, setSystemInfo] = useState<any>(null);
 
   const [modelPullProgress, setModelPullProgress] = useState<{
     [key: string]: ProgressData | undefined;
@@ -120,6 +135,11 @@ function App() {
       case "init": {
         const data = payload.data;
         setInstallationModes(data.installModes);
+        setSystemInfo(data.systemInfo);
+        const { defaultChatModel, defaultTabModel, defaultEmbeddingsModel } = getRecommendedModels(data.systemInfo);
+        setTabModel(defaultTabModel);
+        setChatModel(defaultChatModel);
+        setEmbeddingsModel(defaultEmbeddingsModel);
         break;
       }
       case "status": {
@@ -229,13 +249,21 @@ function App() {
 
     uiMode === "advanced"
       ? (checkKeepExistingConfig =
-          chatModel === null && tabModel === null && embeddingsModel === null)
+        chatModel === null && tabModel === null && embeddingsModel === null)
       : (checkKeepExistingConfig =
-          chatModel === null && embeddingsModel === null);
+        chatModel === null && embeddingsModel === null);
 
     setIsKeepExistingConfigSelected(checkKeepExistingConfig);
     setUiMode(uiMode);
   }
+
+  const selectedUninstalledModels = Array.from(new Set([
+    chatModel,
+    tabModel,
+    embeddingsModel
+  ].filter(id => id && modelStatuses.get(id) !== ModelStatus.installed && modelStatuses.get(id) !== ModelStatus.stale))) as string[];
+
+  const diskSpaceCheck = checkCombinedDiskSpace(selectedUninstalledModels, systemInfo);
 
   return (
     <main className="main-wrapper">
@@ -291,12 +319,12 @@ function App() {
                   {installationModes.some(
                     (mode) => mode.supportsRefresh === true
                   ) && (
-                    <p>
-                      <span>
-                        This page will refresh once Ollama is installed.
-                      </span>
-                    </p>
-                  )}
+                      <p>
+                        <span>
+                          This page will refresh once Ollama is installed.
+                        </span>
+                      </p>
+                    )}
                   {installationModes.map((mode) => (
                     <button
                       key={mode.id}
@@ -311,7 +339,14 @@ function App() {
               )}
           </div>
         </div>
-
+        {(diskSpaceCheck.warnings.length > 0 || diskSpaceCheck.errors.length > 0) && (
+          <div className="form-group">
+            <ModelWarning
+              warnings={diskSpaceCheck.warnings}
+              errors={diskSpaceCheck.errors}
+            />
+          </div>
+        )}
         <div className="modelList-wrapper">
           {uiMode === "simple" ? (
             <ModelList
@@ -324,6 +359,7 @@ function App() {
               progress={chatModel ? modelPullProgress[chatModel] : undefined}
               disabled={!enabled}
               tooltip="This model will be used for Chat and Tab Completion"
+              systemInfo={systemInfo}
             />
           ) : (
             <>
@@ -337,6 +373,7 @@ function App() {
                 progress={chatModel ? modelPullProgress[chatModel] : undefined}
                 disabled={!enabled}
                 tooltip="This model will be used for Chat"
+                systemInfo={systemInfo}
               />
 
               <ModelList
@@ -349,6 +386,7 @@ function App() {
                 progress={tabModel ? modelPullProgress[tabModel] : undefined}
                 disabled={!enabled}
                 tooltip="This model will be used for Tab Completion"
+                systemInfo={systemInfo}
               />
             </>
           )}
@@ -365,6 +403,7 @@ function App() {
             }
             disabled={!enabled}
             tooltip="This model will be used to compute embeddings"
+            systemInfo={systemInfo}
           />
         </div>
 
@@ -387,14 +426,15 @@ function App() {
               </label>
             </div>
           </div>
-          {}
+          { }
           <button
             className="install-button"
             onClick={handleSetupGraniteClick}
             disabled={
               serverStatus !== ServerStatus.started ||
               !enabled ||
-              isKeepExistingConfigSelected
+              isKeepExistingConfigSelected ||
+              !diskSpaceCheck.isCompatible
             }
           >
             Setup Granite
@@ -404,8 +444,8 @@ function App() {
 
       <div className="info-message">
         <p>
-            * To reopen this wizard, open the command palette and run:
-            <p style={{ margin: 2, paddingLeft: 10 }}><strong>Paver: Setup Granite as code assistant</strong></p>
+          * To reopen this wizard, open the command palette and run:
+          <p style={{ margin: 2, paddingLeft: 10 }}><strong>Paver: Setup Granite as code assistant</strong></p>
         </p>
         {uiMode === "simple" ? (
           <p>
