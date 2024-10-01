@@ -183,10 +183,10 @@ export class MockServer extends OllamaServer implements IModelServer {
         });
 
         // Throw error if model is "granite-code:34b" and we reach 10% progress
-        if (modelName === "granite-code:34b" && layer.progress / layer.size >= 0.1) {
-          reject(new Error('Simulated error: Insufficient space while pulling granite-code:34b.'));
-          return;
-        }
+        // if (modelName === "granite-code:34b" && layer.progress / layer.size >= 0.1) {
+        //  reject(new Error('Simulated error: Insufficient space while pulling granite-code:34b.'));
+        //  return;
+        // }
 
         if (layer.progress >= layer.size) {
           resolve();
@@ -216,9 +216,9 @@ export class MockServer extends OllamaServer implements IModelServer {
     embeddingsModelName: string | null
   ): Promise<void> {
     // Throw an error if conflicting models are selected
-    if (chatModelName === "granite-code:3b" && tabModelName === "granite-code:20b") {
-      throw new Error('Simulated error: Conflicting models selected for chat and tab completion.');
-    }
+    // if (chatModelName === "granite-code:3b" && tabModelName === "granite-code:20b") {
+    //   throw new Error('Simulated error: Conflicting models selected for chat and tab completion.');
+    // }
     super.configureAssistant(chatModelName, tabModelName, embeddingsModelName);
   }
 }
