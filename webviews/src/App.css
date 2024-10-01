@@ -26,7 +26,7 @@ div .progress-bar {
 .form-group {
   margin: 15px;
   width: 100%;
-    vertical-align: middle;
+  vertical-align: middle;
 }
 
 .form-group label {
@@ -52,7 +52,7 @@ button:hover {
 
 button:disabled {
   cursor: not-allowed;
-    opacity: 0.5;
+  opacity: 0.5;
   }
   
   .progress-container {
@@ -61,10 +61,11 @@ button:disabled {
     background: var(--vscode-welcomePage-tileBackground);
     border-radius: 5px;
   }
+
 .progress-status {
   font-style: italic;
   padding: 8px;
-    display: flex;
+  display: flex;
     justify-content: space-between;
 }
 
@@ -118,10 +119,6 @@ button:disabled {
   background: var(--vscode-welcomePage-tileBackground);
 }
 
-/* .main-wrapper .form-group-wrapper .ollama-status-wrapper:hover {
-  background: var(--vscode-welcomePage-tileHoverBackground);
-} */
-
 .main-wrapper .form-group-wrapper .ollama-status-wrapper label {
   display: flex;
   align-items: center;
@@ -159,12 +156,8 @@ button:disabled {
   background-color: transparent;
 }
 
-.main-wrapper .form-group-wrapper .model-list>div+.model-option--info {
-  color: goldenrod !important;
-}
-
 .main-wrapper .form-group-wrapper .model-list>div span {
-  color: var(--vscode-terminal-ansiWhite);
+  color: var(--vscode-terminal-tab-activeBorder);
 }
 
 .main-wrapper .form-group-wrapper .info-label {
@@ -174,12 +167,13 @@ button:disabled {
   font-style: italic;
   color: var(--vscode-terminal-background);
   padding: 5px 5px 0;
+  display: flex;
+    align-items: center;
 }
 
 @media (max-width: 767px) {
   .main-wrapper .form-group-wrapper {
     width: calc(100% - 50px);
-    outline: 1px solid rgb(43, 70, 4);
   }
 }
 
