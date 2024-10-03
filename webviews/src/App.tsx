@@ -14,7 +14,7 @@ function App() {
     { label: 'granite-code:34b', value: 'granite-code:34b', info: '19 GB' }
   ];
   const embeddingsOptions: ModelOption[] = [
-    { label: 'nomic-embed-text', value: 'nomic-embed-text', info: '274 MB' }
+    { label: 'nomic-embed-text', value: 'nomic-embed-text:latest', info: '274 MB' }
   ];
   const [tabModel, setTabModel] = useState<string | null>(modelOptions[0].value);
   const [chatModel, setChatModel] = useState<string | null>(modelOptions[2].value);
@@ -150,7 +150,7 @@ function App() {
         <div className="form-group">
           <div className="ollama-status-wrapper">
             <label>
-              {status === 'installed' ? <FcCheckmark /> : <FcCancel />} 
+              {status === 'installed' ? <FcCheckmark /> : <FcCancel />}
               <span>Ollama status:</span>
               <span>{status}</span>
             </label>
