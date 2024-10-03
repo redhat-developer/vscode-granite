@@ -191,7 +191,7 @@ export class MockServer extends OllamaServer implements IModelServer {
         if (layer.progress >= layer.size) {
           resolve();
         } else {
-          setTimeout(updateProgress, 500);
+          setTimeout(updateProgress, 100);
         }
       };
 
