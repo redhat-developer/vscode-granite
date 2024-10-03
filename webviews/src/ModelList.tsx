@@ -11,6 +11,7 @@ export interface ModelOption {
 }
 
 interface ModelListProps {
+    className: string;
     label: string;
     value: string | null;
     onChange: (option: ModelOption | null) => void;
@@ -20,7 +21,7 @@ interface ModelListProps {
     disabled?: boolean;
 }
 
-const ModelList: React.FC<ModelListProps> = ({ label, value, onChange, status, options, progress, disabled }) => {
+const ModelList: React.FC<ModelListProps> = ({ className, label, value, onChange, status, options, progress, disabled }) => {
     const selectHeight = '16px';
     const customStyles = {
         container: (base: any) => ({
@@ -62,40 +63,57 @@ const ModelList: React.FC<ModelListProps> = ({ label, value, onChange, status, o
 
     const formatOptionLabel = (modelOption: ModelOption, { context }: { context: 'menu' | 'value' }) => {
         const isSelected = value === modelOption.value;
-        const color = isSelected && context === 'menu' ? 'var(--vscode-quickInputList-focusForeground)' : 'var(--vscode-input-placeholderForeground)';
+        const color = isSelected && context === 'menu' ? 'var(--vscode-quickInputList-focusForeground)' : 'var(--vscode-menu-foreground)';
         return (
+            context === 'menu' ? 
             <div style={
                 {
                 display: 'flex',
                 width: '250px',
                 justifyContent: 'space-between',
             }}>
-                <span>{modelOption.label}</span>
-                <span style={{ color }}>{modelOption.info}</span>
+                <span style={{ color }}>{modelOption.label}</span>
+                <span className='model-option--info' style={{ color }}>{modelOption.info}</span>
+            </div>
+            : 
+            <div style={
+                {
+                display: 'flex',
+                width: '250px',
+                justifyContent: 'space-between',
+            }}>
+                <span style={{ color }}>{modelOption.label}</span>
             </div>
         );
     };
 
     return (
         <div className="form-group">
-            <div style={{ display: 'inline-flex', verticalAlign: 'middle', alignItems: 'center' }}>
-                {status ? <FcCheckmark /> : <FcCancel />}
-                <label htmlFor={label} style={{ minWidth: '200px', display: 'flex', alignItems: 'center' }}>{label}:</label>
-                <Select
-                    id={label}
-                    value={options.find(option => option.value === value)}
-                    onChange={(newValue) => onChange(newValue as ModelOption)}
-                    options={options}
-                    isDisabled={disabled}
-                    styles={customStyles}
-                    formatOptionLabel={formatOptionLabel}
-                />
-                {!status && !progress && <label style={{ display: 'flex', alignItems: 'center' }}> (will be pulled automatically)</label>}
+            <div className='model-list--outer-wrapper'>
+                
+                <label className='model-list--label' htmlFor={label}>
+                    {status ? <FcCheckmark /> : <FcCancel />} 
+                    <span>{label}:</span>
+                </label>
+
+                <div className={className + `--wrapper`}>
+                    <Select
+                        className={className}
+                        id={label}
+                        value={options.find(option => option.value === value)}
+                        onChange={(newValue) => onChange(newValue as ModelOption)}
+                        options={options}
+                        isDisabled={disabled}
+                        styles={customStyles}
+                        formatOptionLabel={formatOptionLabel}
+                    />
+                    {!status && <span className='info-label' style={{ display: 'flex', alignItems: 'center' }}> (will be pulled automatically)</span>}
+                </div>
             </div>
 
-            <div className='progress-container' style={{ width: "90%" }}>
+            <div className='progress-container'>
                 {!status && progress && (
-                    <div id='progress' style={{ width: "100%" }}>
+                    <div id='progress' style={{ width: "100%", marginTop: "8px" }}>
                         <ProgressBar id={value!} data={progress} />
                     </div>
                 )}
