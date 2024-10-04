@@ -1,8 +1,8 @@
 import React from 'react';
 import Select from 'react-select';
-import { FcCancel, FcCheckmark } from "react-icons/fc";
 import { ProgressData } from '../../src/commons/progressData';
 import ProgressBar from './ProgressBar';
+import { StatusCheck } from './StatusCheck';
 
 export interface ModelOption {
     label: string;
@@ -82,7 +82,7 @@ const ModelList: React.FC<ModelListProps> = ({ className, label, value, onChange
             <div className='model-list--outer-wrapper'>
 
                 <label className='model-list--label' htmlFor={label}>
-                    {status ? <FcCheckmark /> : <FcCancel />}
+                    <StatusCheck checked={status} />
                     <span>{label}:</span>
                 </label>
 
