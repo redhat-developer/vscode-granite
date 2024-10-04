@@ -64,25 +64,15 @@ const ModelList: React.FC<ModelListProps> = ({ className, label, value, onChange
     const formatOptionLabel = (modelOption: ModelOption, { context }: { context: 'menu' | 'value' }) => {
         const isSelected = value === modelOption.value;
         const color = isSelected && context === 'menu' ? 'var(--vscode-quickInputList-focusForeground)' : 'var(--vscode-menu-foreground)';
+        const style = {
+            display: 'flex',
+            width: context === 'menu' ? '250px' : '210px',
+            justifyContent: 'space-between',
+        }
         return (
-            context === 'menu' ? 
-            <div style={
-                {
-                display: 'flex',
-                width: '250px',
-                justifyContent: 'space-between',
-            }}>
+            <div style={style}>
                 <span style={{ color }}>{modelOption.label}</span>
                 <span className='model-option--info' style={{ color }}>{modelOption.info}</span>
-            </div>
-            : 
-            <div style={
-                {
-                display: 'flex',
-                width: '250px',
-                justifyContent: 'space-between',
-            }}>
-                <span style={{ color }}>{modelOption.label}</span>
             </div>
         );
     };
@@ -90,9 +80,9 @@ const ModelList: React.FC<ModelListProps> = ({ className, label, value, onChange
     return (
         <div className="form-group">
             <div className='model-list--outer-wrapper'>
-                
+
                 <label className='model-list--label' htmlFor={label}>
-                    {status ? <FcCheckmark /> : <FcCancel />} 
+                    {status ? <FcCheckmark /> : <FcCancel />}
                     <span>{label}:</span>
                 </label>
 

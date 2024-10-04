@@ -165,7 +165,6 @@ button:disabled {
   font-weight: normal;
   text-wrap: nowrap;
   font-style: italic;
-  color: var(--vscode-terminal-background);
   padding: 5px 5px 0;
 }
 
