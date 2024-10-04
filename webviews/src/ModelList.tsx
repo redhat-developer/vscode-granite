@@ -68,7 +68,7 @@ const ModelList: React.FC<ModelListProps> = ({ className, label, value, onChange
             display: 'flex',
             width: context === 'menu' ? '250px' : '210px',
             justifyContent: 'space-between',
-        }
+        };
         return (
             <div style={style}>
                 <span style={{ color }}>{modelOption.label}</span>
