@@ -1,4 +1,4 @@
-import { vscode } from "./utilities/vscode";
+import { vscode } from "./utils/vscode";
 import "./App.css";
 import { useCallback, useEffect, useState } from "react";
 import ModelList, { ModelOption } from "./ModelList";
@@ -26,7 +26,7 @@ function App() {
 
   const [status, setStatus] = useState<string>('Unknown');
   const [availableModels, setAvailableModels] = useState<string[]>([]);
-  const [installationModes, setInstallationModes] = useState<{id:string, label:string}[]>([]);
+  const [installationModes, setInstallationModes] = useState<{ id: string, label: string }[]>([]);
 
   const [enabled, setEnabled] = useState<boolean>(true);
 
@@ -57,7 +57,7 @@ function App() {
     vscode.postMessage({
       command: "installOllama",
       data: {
-          mode,
+        mode,
       }
     });
   }
@@ -157,18 +157,18 @@ function App() {
 
             {/* New section for additional buttons */}
             {status !== 'installed' && installationModes.length > 0 && (
-            <div className="install-options">
-              <p><span>This page will refresh once Ollama is installed.</span></p>
-              {installationModes.map((mode) => (
-                <button
-                  key={mode.id}
-                  className="install-button"
-                  onClick={() => handleInstallOllama(mode.id)}
-                  disabled={!enabled}
-                >
-                  {mode.label}
-                </button>
-              ))}
+              <div className="install-options">
+                <p><span>This page will refresh once Ollama is installed.</span></p>
+                {installationModes.map((mode) => (
+                  <button
+                    key={mode.id}
+                    className="install-button"
+                    onClick={() => handleInstallOllama(mode.id)}
+                    disabled={!enabled}
+                  >
+                    {mode.label}
+                  </button>
+                ))}
               </div>
             )}
           </div>

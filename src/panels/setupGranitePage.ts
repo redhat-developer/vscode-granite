@@ -16,8 +16,8 @@ import { IModelServer } from '../modelServer';
 import { MockServer } from '../ollama/mockServer';
 import { OllamaServer } from '../ollama/ollamaServer';
 import { Telemetry } from '../telemetry';
-import { getNonce } from "../utilities/getNonce";
-import { getUri } from "../utilities/getUri";
+import { getNonce } from "../utils/getNonce";
+import { getUri } from "../utils/getUri";
 
 /**
  * This class manages the state and behavior of HelloWorld webview panels.
@@ -266,7 +266,7 @@ export class SetupGranitePage {
                   try {
                     await this.server.startServer();
                     models = await this.server.listModels();
-                  } catch (e) {}
+                  } catch (e) { }
                 }
               }
             }
