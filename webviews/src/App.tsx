@@ -2,8 +2,8 @@ import { vscode } from "./utils/vscode";
 import "./App.css";
 import { useCallback, useEffect, useState } from "react";
 import ModelList, { ModelOption } from "./ModelList";
-import { FcCancel, FcCheckmark } from "react-icons/fc";
 import { ProgressData } from "../../src/commons/progressData";
+import { StatusCheck } from "./StatusCheck";
 
 
 function App() {
@@ -150,7 +150,7 @@ function App() {
         <div className="form-group">
           <div className="ollama-status-wrapper">
             <label>
-              {status === 'installed' ? <FcCheckmark /> : <FcCancel />}
+              <StatusCheck checked={status === 'installed'} />
               <span>Ollama status:</span>
               <span>{status}</span>
             </label>
