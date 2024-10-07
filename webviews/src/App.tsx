@@ -16,8 +16,8 @@ function App() {
   const embeddingsOptions: ModelOption[] = [
     { label: 'nomic-embed-text', value: 'nomic-embed-text:latest', info: '274 MB' }
   ];
-  const [tabModel, setTabModel] = useState<string | null>(modelOptions[0].value);
-  const [chatModel, setChatModel] = useState<string | null>(modelOptions[2].value);
+  const [tabModel, setTabModel] = useState<string | null>(modelOptions[1].value); //use 8b by default
+  const [chatModel, setChatModel] = useState<string | null>(modelOptions[1].value);//use 8b by default
   const [embeddingsModel, setEmbeddingsModel] = useState<string | null>(embeddingsOptions[0].value);
 
   const [modelPullProgress, setModelPullProgress] = useState<{
