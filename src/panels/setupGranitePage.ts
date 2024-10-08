@@ -9,15 +9,15 @@ import {
   ViewColumn,
   Webview,
   WebviewPanel,
-  window,
+  window
 } from "vscode";
 import { ProgressData } from "../commons/progressData";
 import { IModelServer } from '../modelServer';
 import { MockServer } from '../ollama/mockServer';
 import { OllamaServer } from '../ollama/ollamaServer';
 import { Telemetry } from '../telemetry';
-import { getNonce } from "../utilities/getNonce";
-import { getUri } from "../utilities/getUri";
+import { getNonce } from "../utils/getNonce";
+import { getUri } from "../utils/getUri";
 
 /**
  * This class manages the state and behavior of HelloWorld webview panels.
@@ -266,7 +266,7 @@ export class SetupGranitePage {
                   try {
                     await this.server.startServer();
                     models = await this.server.listModels();
-                  } catch (e) {}
+                  } catch (e) { }
                 }
               }
             }
@@ -314,12 +314,13 @@ export class SetupGranitePage {
   }
 
   async setupGranite(
-    graniteConfiguration: GraniteConfiguration, reportProgress: (progress: ProgressData) => void): Promise<void> {
-  //TODO handle continue (conflicting) onboarding page
+    graniteConfiguration: GraniteConfiguration, reportProgress: (progress: ProgressData) => void
+  ): Promise<void> {
+    //TODO handle continue (conflicting) onboarding page
 
     console.log("Starting Granite Code AI-Assistant configuration...");
 
-    //collect all unique models to install, from graniteConfiguration
+    // Collect all unique models to install from graniteConfiguration
     const modelsToInstall = new Set<string>();
     if (graniteConfiguration.chatModelId !== null) {
       modelsToInstall.add(graniteConfiguration.chatModelId);
@@ -332,17 +333,17 @@ export class SetupGranitePage {
     }
 
     try {
+      // Attempt to install the required models
       for (const model of modelsToInstall) {
         if (await this.server.isModelInstalled(model)) {
           console.log(`${model} is already installed`);
         } else {
           await this.server.installModel(model, reportProgress);
-          await Telemetry.send("granite.setup.model.install", {
-            model,
-          });
+          await Telemetry.send("granite.setup.model.install", { model });
         }
       }
 
+      // After installing models, configure the assistant
       await this.server.configureAssistant(
         graniteConfiguration.chatModelId,
         graniteConfiguration.tabModelId,
@@ -359,15 +360,22 @@ export class SetupGranitePage {
       if (error instanceof CancellationError || error?.name === "Canceled") {
         return;
       }
+      // Generic error handling for all errors
       await Telemetry.send("granite.setup.error", {
         error: error?.message ?? 'unknown error',
         chatModelId: graniteConfiguration.chatModelId ?? 'none',
         tabModelId: graniteConfiguration.tabModelId ?? 'none',
         embeddingsModelId: graniteConfiguration.embeddingsModelId ?? 'none',
       });
+
+      // Show a generic error message to the user
+      window.showErrorMessage(`An error occurred during model setup: ${error.message ?? 'Unknown error'}`);
+
+      // Rethrow the error after handling
       throw error;
     }
 
+    // Trigger the next UI flow after successful setup
     commands.executeCommand("continue.continueGUIView.focus");
   }
 

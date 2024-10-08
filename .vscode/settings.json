@@ -16,7 +16,7 @@
     "editor.tabSize": 2,
     "editor.insertSpaces": true,
     "editor.formatOnSave": true,
-    "editor.formatOnSaveMode": "modificationsIfAvailable",
+    "editor.formatOnSaveMode": "file",
 
     "[typescript]": {
     "editor.codeActionsOnSave": {

@@ -1,9 +1,9 @@
-import { vscode } from "./utilities/vscode";
+import { vscode } from "./utils/vscode";
 import "./App.css";
 import { useCallback, useEffect, useState } from "react";
 import ModelList, { ModelOption } from "./ModelList";
-import { FcCancel, FcCheckmark } from "react-icons/fc";
 import { ProgressData } from "../../src/commons/progressData";
+import { StatusCheck } from "./StatusCheck";
 
 
 function App() {
@@ -14,10 +14,10 @@ function App() {
     { label: 'granite-code:34b', value: 'granite-code:34b', info: '19 GB' }
   ];
   const embeddingsOptions: ModelOption[] = [
-    { label: 'nomic-embed-text', value: 'nomic-embed-text', info: '274 MB' }
+    { label: 'nomic-embed-text', value: 'nomic-embed-text:latest', info: '274 MB' }
   ];
-  const [tabModel, setTabModel] = useState<string | null>(modelOptions[0].value);
-  const [chatModel, setChatModel] = useState<string | null>(modelOptions[2].value);
+  const [tabModel, setTabModel] = useState<string | null>(modelOptions[1].value); //use 8b by default
+  const [chatModel, setChatModel] = useState<string | null>(modelOptions[1].value);//use 8b by default
   const [embeddingsModel, setEmbeddingsModel] = useState<string | null>(embeddingsOptions[0].value);
 
   const [modelPullProgress, setModelPullProgress] = useState<{
@@ -26,7 +26,7 @@ function App() {
 
   const [status, setStatus] = useState<string>('Unknown');
   const [availableModels, setAvailableModels] = useState<string[]>([]);
-  const [installationModes, setInstallationModes] = useState<{id:string, label:string}[]>([]);
+  const [installationModes, setInstallationModes] = useState<{ id: string, label: string }[]>([]);
 
   const [enabled, setEnabled] = useState<boolean>(true);
 
@@ -57,7 +57,7 @@ function App() {
     vscode.postMessage({
       command: "installOllama",
       data: {
-          mode,
+        mode,
       }
     });
   }
@@ -143,64 +143,74 @@ function App() {
   }, [status, availableModels]);
 
   return (
-    <main>
-      <h1>Setup IBM Granite Code as your code assistant with Continue</h1>
+    <main className="main-wrapper">
+      <h1 className="main-title">Setup IBM Granite Code as your code assistant with Continue</h1>
 
-      <div className="form-group">
-        {status === 'installed' ? <FcCheckmark /> : <FcCancel />}
-        <label>Ollama status:</label>
-        <span>{status}</span>
-          {/* New section for additional buttons */}
-          {status !== 'installed' && installationModes.length > 0 && (
-          <div className="install-options">
-            <p><span>This page will refresh once Ollama is installed.</span></p>
-            {installationModes.map((mode) => (
-              <button
-                key={mode.id}
-                className="install-button"
-                onClick={() => handleInstallOllama(mode.id)}
-                disabled={!enabled}
-              >
-                {mode.label}
-              </button>
-            ))}
-            </div>
-          )}
-      </div>
+      <div className="form-group-wrapper">
+        <div className="form-group">
+          <div className="ollama-status-wrapper">
+            <label>
+              <StatusCheck checked={status === 'installed'} />
+              <span>Ollama status:</span>
+              <span>{status}</span>
+            </label>
 
-      {/* FIXME align labels and selects */}
-      <ModelList
-        label="Chat model"
-        value={chatModel}
-        onChange={(e) => setChatModel(e?.value ?? null)}
-        status={isModelAvailable(chatModel)}
-        options={modelOptions}
-        progress={chatModel ? modelPullProgress[chatModel] : undefined}
-        disabled={!enabled}
-      />
+            {/* New section for additional buttons */}
+            {status !== 'installed' && installationModes.length > 0 && (
+              <div className="install-options">
+                <p><span>This page will refresh once Ollama is installed.</span></p>
+                {installationModes.map((mode) => (
+                  <button
+                    key={mode.id}
+                    className="install-button"
+                    onClick={() => handleInstallOllama(mode.id)}
+                    disabled={!enabled}
+                  >
+                    {mode.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
 
-      <ModelList
-        label="Tab completion model"
-        value={tabModel}
-        onChange={(e) => setTabModel(e?.value ?? null)}
-        status={isModelAvailable(tabModel)}
-        options={modelOptions}
-        progress={tabModel ? modelPullProgress[tabModel] : undefined}
-        disabled={!enabled}
-      />
+        {/* FIXME align labels and selects */}
+        <ModelList
+          className="model-list"
+          label="Chat model"
+          value={chatModel}
+          onChange={(e) => setChatModel(e?.value ?? null)}
+          status={isModelAvailable(chatModel)}
+          options={modelOptions}
+          progress={chatModel ? modelPullProgress[chatModel] : undefined}
+          disabled={!enabled}
+        />
 
-      <ModelList
-        label="Embeddings model"
-        value={embeddingsModel}
-        onChange={(e) => setEmbeddingsModel(e?.value ?? null)}
-        status={isModelAvailable(embeddingsModel)}
-        options={embeddingsOptions}
-        progress={embeddingsModel ? modelPullProgress[embeddingsModel] : undefined}
-        disabled={!enabled}
-      />
+        <ModelList
+          className="model-list"
+          label="Tab completion model"
+          value={tabModel}
+          onChange={(e) => setTabModel(e?.value ?? null)}
+          status={isModelAvailable(tabModel)}
+          options={modelOptions}
+          progress={tabModel ? modelPullProgress[tabModel] : undefined}
+          disabled={!enabled}
+        />
 
-      <div className="final-setup-group">
-        <button className="install-button" onClick={handleSetupGraniteClick} disabled={status !== 'installed' || !enabled}>Setup Granite Code</button>
+        <ModelList
+          className="model-list"
+          label="Embeddings model"
+          value={embeddingsModel}
+          onChange={(e) => setEmbeddingsModel(e?.value ?? null)}
+          status={isModelAvailable(embeddingsModel)}
+          options={embeddingsOptions}
+          progress={embeddingsModel ? modelPullProgress[embeddingsModel] : undefined}
+          disabled={!enabled}
+        />
+
+        <div className="final-setup-group">
+          <button className="install-button" onClick={handleSetupGraniteClick} disabled={status !== 'installed' || !enabled}>Setup Granite Code</button>
+        </div>
       </div>
     </main>
   );

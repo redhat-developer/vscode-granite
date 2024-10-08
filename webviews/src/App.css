@@ -26,7 +26,7 @@ div .progress-bar {
 .form-group {
   margin: 15px;
   width: 100%;
-    vertical-align: middle;
+  vertical-align: middle;
 }
 
 .form-group label {
@@ -39,9 +39,9 @@ button {
   color: var(--vscode-button-foreground);
   border: none;
   padding: 8px 16px;
-  margin: 10px 5px;
+  margin: 5px;
   cursor: pointer;
-  border-radius: 2px;
+  border-radius: 4px;
 }
 
 button:hover {
@@ -49,20 +49,134 @@ button:hover {
 }
 
 /* Styling for disabled buttons */
+
 button:disabled {
-  background-color: var(--vscode-button-secondaryBackground);
-  color: var(--vscode-button-secondaryForeground);
-  cursor: not-allowed; /* Change cursor to 'not-allowed' */
-  opacity: 0.6; /* Reduce opacity for a disabled look */
+  cursor: not-allowed;
+  opacity: 0.5;
 }
+
+.progress-container {
+  width: calc(100% - 10px);
+  margin: 5px 0 0 10px;
+  background: var(--vscode-welcomePage-tileBackground);
+  border-radius: 5px;
+}
+
 .progress-status {
   font-style: italic;
-  margin-bottom: 8px;
-  display: inline-block;
+  padding: 8px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .final-setup-group {
   align-self: flex-end;
   margin-top: 20px;
-  margin-right: 15px;
+}
+
+.main-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.main-title {
+  font-size: 24px;
+  font-weight: bolder;
+  line-height: 1.2;
+  color: var(--vscode-editorGhostText-background);
+}
+
+.main-wrapper .form-group-wrapper {
+  width: 500px;
+  margin-bottom: 20px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--vscode-tree-tableColumnsBorder);
+  border-radius: 5px;
+}
+
+.main-wrapper .form-group-wrapper .form-group {
+  margin: 0 15px 15px;
+}
+
+.main-wrapper .form-group-wrapper .install-options {
+  padding: 8px 18px;
+}
+
+.main-wrapper .form-group-wrapper .ollama-status-wrapper {
+  width: calc(100% - 30px);
+  height: 100%;
+  padding: 15px;
+  border-radius: 5px;
+  background: var(--vscode-welcomePage-tileBackground);
+}
+
+.main-wrapper .form-group-wrapper .ollama-status-wrapper label {
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  font-weight: normal;
+}
+
+.main-wrapper .form-group-wrapper .model-list--label {
+  display: flex;
+  align-items: center;
+  min-width: 200px;
+  font-size: 15px;
+  font-weight: normal;
+}
+
+.main-wrapper .form-group-wrapper .ollama-status-wrapper label>span,
+.main-wrapper .form-group-wrapper .model-list--label>span {
+  font-weight: normal;
+  margin-left: 5px;
+}
+
+.main-wrapper .form-group-wrapper .ollama-status-wrapper label>span {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.main-wrapper .form-group-wrapper .model-list--outer-wrapper {
+  display: inline-flex;
+  vertical-align: middle;
+  align-items: baseline;
+  padding: 10px 0 0 15px;
+}
+
+.main-wrapper .form-group-wrapper .model-list>div {
+  background-color: var(--vscode-terminal-background);
+}
+
+.main-wrapper .form-group-wrapper .model-list>div span {
+  color: var(--vscode-terminal-ansiWhite);
+}
+
+.main-wrapper .form-group-wrapper .info-label {
+  font-size: 14px;
+  font-weight: normal;
+  text-wrap: nowrap;
+  font-style: italic;
+  padding: 5px 5px 0;
+}
+
+@media (max-width: 767px) {
+  .main-wrapper .form-group-wrapper {
+    width: calc(100% - 50px);
+  }
+}
+
+@media (max-width: 467px) {
+  .main-wrapper .form-group-wrapper .model-list--outer-wrapper {
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
 }
