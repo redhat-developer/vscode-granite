@@ -15,7 +15,7 @@ interface ModelListProps {
     label: string;
     value: string | null;
     onChange: (option: ModelOption | null) => void;
-    status: boolean;
+    status: boolean | null;
     options: ModelOption[];
     progress?: ProgressData;
     disabled?: boolean;
@@ -97,7 +97,7 @@ const ModelList: React.FC<ModelListProps> = ({ className, label, value, onChange
                         styles={customStyles}
                         formatOptionLabel={formatOptionLabel}
                     />
-                    {!status && !progress && <span className='info-label' style={{ display: 'flex', alignItems: 'center' }}> (will be pulled automatically)</span>}
+                    {status === null ? ('') : !status && !progress && <span className='info-label' style={{ display: 'flex', alignItems: 'center' }}> (will be pulled automatically)</span>}
 
                 </div>
             </div>

@@ -11,10 +11,12 @@ function App() {
     { label: 'granite-code:3b', value: 'granite-code:3b', info: '2.0 GB' },
     { label: 'granite-code:8b', value: 'granite-code:8b', info: '4.6 GB' },
     { label: 'granite-code:20b', value: 'granite-code:20b', info: '12 GB' },
-    { label: 'granite-code:34b', value: 'granite-code:34b', info: '19 GB' }
+    { label: 'granite-code:34b', value: 'granite-code:34b', info: '19 GB' },
+    { label: 'Keep existing configuration', value: 'Keep existing configuration', info: '' }
   ];
   const embeddingsOptions: ModelOption[] = [
-    { label: 'nomic-embed-text', value: 'nomic-embed-text:latest', info: '274 MB' }
+    { label: 'nomic-embed-text', value: 'nomic-embed-text:latest', info: '274 MB' },
+    { label: 'Keep existing configuration', value: 'Keep existing configuration', info: '' }
   ];
   const [tabModel, setTabModel] = useState<string | null>(modelOptions[1].value); //use 8b by default
   const [chatModel, setChatModel] = useState<string | null>(modelOptions[1].value);//use 8b by default
@@ -179,8 +181,13 @@ function App() {
           className="model-list"
           label="Chat model"
           value={chatModel}
-          onChange={(e) => setChatModel(e?.value ?? null)}
-          status={isModelAvailable(chatModel)}
+          onChange={(e) => 
+            { e?.value !== "Keep existing configuration" ? 
+              (setChatModel(e?.value ?? null)) : 
+              (setChatModel(null));
+            }
+          }
+          status={chatModel === null ? (null) : (isModelAvailable(chatModel))}
           options={modelOptions}
           progress={chatModel ? modelPullProgress[chatModel] : undefined}
           disabled={!enabled}
@@ -190,8 +197,13 @@ function App() {
           className="model-list"
           label="Tab completion model"
           value={tabModel}
-          onChange={(e) => setTabModel(e?.value ?? null)}
-          status={isModelAvailable(tabModel)}
+          onChange={(e) =>
+            { e?.value !== "Keep existing configuration" ? 
+              (setTabModel(e?.value ?? null)) :
+              (setTabModel(null));
+            }
+          }
+          status={tabModel === null ? (null) : (isModelAvailable(tabModel))}
           options={modelOptions}
           progress={tabModel ? modelPullProgress[tabModel] : undefined}
           disabled={!enabled}
@@ -201,8 +213,13 @@ function App() {
           className="model-list"
           label="Embeddings model"
           value={embeddingsModel}
-          onChange={(e) => setEmbeddingsModel(e?.value ?? null)}
-          status={isModelAvailable(embeddingsModel)}
+          onChange={(e) => 
+            { e?.value !== "Keep existing configuration" ? 
+              (setEmbeddingsModel(e?.value ?? null)) :
+              (setEmbeddingsModel(null));
+            }
+          }
+          status={embeddingsModel === null ? (null) : (isModelAvailable(embeddingsModel))}
           options={embeddingsOptions}
           progress={embeddingsModel ? modelPullProgress[embeddingsModel] : undefined}
           disabled={!enabled}
