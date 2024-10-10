@@ -11,7 +11,9 @@ import {
   WebviewPanel,
   window
 } from "vscode";
+import { DOWNLOADABLE_MODELS } from '../commons/constants';
 import { ProgressData } from "../commons/progressData";
+import { ModelStatus, ServerStatus } from '../commons/statuses';
 import { IModelServer } from '../modelServer';
 import { MockServer } from '../ollama/mockServer';
 import { OllamaServer } from '../ollama/ollamaServer';
@@ -224,7 +226,7 @@ export class SetupGranitePage {
       async (message: any) => {
         const command = message.command;
         const data = message.data;
-        let ollamaInstalled: boolean | undefined;
+
         switch (command) {
           case "init":
             webview.postMessage({
@@ -251,34 +253,7 @@ export class SetupGranitePage {
             }
             this.debounceStatus = now;
 
-            // console.log("Received fetchStatus msg " + debounceStatus);
-            let models: string[];
-            try {
-              models = await this.server.listModels();
-              ollamaInstalled = true;
-            } catch (e) {
-              //TODO check error response code instead?
-              models = [];
-              if (!ollamaInstalled) {
-                //fall back to checking CLI
-                ollamaInstalled = await this.server.isServerInstalled();
-                if (ollamaInstalled) {
-                  try {
-                    await this.server.startServer();
-                    models = await this.server.listModels();
-                  } catch (e) { }
-                }
-              }
-            }
-            //TODO check selected models statuses
-            //Respond with configuration status when init command is received
-            webview.postMessage({
-              command: "status",
-              data: {
-                ollamaInstalled,
-                models,
-              },
-            });
+            this.publishStatus(webview);
             break;
           case "setupGranite":
             async function reportProgress(progress: ProgressData) {
@@ -296,7 +271,7 @@ export class SetupGranitePage {
               },
             });
             try {
-              await this.setupGranite(data as GraniteConfiguration, reportProgress);
+              await this.setupGranite(data as GraniteConfiguration, reportProgress, webview);
             } finally {
               webview.postMessage({
                 command: "page-update",
@@ -313,47 +288,81 @@ export class SetupGranitePage {
     );
   }
 
+  async getModelStatuses(): Promise<Map<string, ModelStatus>> {
+    const modelStatuses: Map<string, ModelStatus> = new Map();
+    await Promise.all(DOWNLOADABLE_MODELS.map(async (id) => {
+      const status = await this.server.getModelStatus(id);
+      modelStatuses.set(id, status);
+    }));
+    return modelStatuses;
+  }
+
+  async publishStatus(webview: Webview) {
+    // console.log("Received fetchStatus msg " + debounceStatus);
+    const serverStatus = await this.server.getStatus();
+    if (serverStatus === ServerStatus.stopped) {
+      // TODO Try starting the server automatically or let the user start it manually?
+      // await this.server.startServer();
+      // serverStatus = await this.server.getStatus();
+    }
+    const modelStatuses = await this.getModelStatuses();
+    const modelStatusesObject = Object.fromEntries(modelStatuses); // Convert Map to Object
+    webview.postMessage({
+      command: "status",
+      data: {
+        serverStatus,
+        modelStatuses: modelStatusesObject
+      },
+    });
+  }
+
   async setupGranite(
-    graniteConfiguration: GraniteConfiguration, reportProgress: (progress: ProgressData) => void
-  ): Promise<void> {
+    graniteConfiguration: GraniteConfiguration, reportProgress: (progress: ProgressData) => void, webview: Webview): Promise<void> {
     //TODO handle continue (conflicting) onboarding page
 
     console.log("Starting Granite Code AI-Assistant configuration...");
-
+    const chatModel = graniteConfiguration.chatModelId;
+    const tabModel = graniteConfiguration.tabModelId;
+    const embeddingsModel = graniteConfiguration.embeddingsModelId;
     // Collect all unique models to install from graniteConfiguration
-    const modelsToInstall = new Set<string>();
-    if (graniteConfiguration.chatModelId !== null) {
-      modelsToInstall.add(graniteConfiguration.chatModelId);
+    const modelsToInstall: string[] = []; //I'd prefer using a sorted set but there's no such thing in vanilla typescript
+    if (chatModel !== null && !modelsToInstall.includes(chatModel)) {
+      modelsToInstall.push(chatModel);
     }
-    if (graniteConfiguration.tabModelId !== null) {
-      modelsToInstall.add(graniteConfiguration.tabModelId);
+    if (tabModel !== null && !modelsToInstall.includes(tabModel)) {
+      modelsToInstall.push(tabModel);
     }
-    if (graniteConfiguration.embeddingsModelId !== null) {
-      modelsToInstall.add(graniteConfiguration.embeddingsModelId);
+    if (embeddingsModel !== null && !modelsToInstall.includes(embeddingsModel)) {
+      modelsToInstall.push(embeddingsModel);
     }
 
     try {
       // Attempt to install the required models
       for (const model of modelsToInstall) {
-        if (await this.server.isModelInstalled(model)) {
-          console.log(`${model} is already installed`);
-        } else {
+        const modelStatus = await this.server.getModelStatus(model);
+        if (modelStatus !== ModelStatus.installed) {
+          if (modelStatus === ModelStatus.stale) {
+            console.log(`${model} is already installed, it will be updated`);
+          } else {
+            console.log(`Installing ${model}`);
+          }
           await this.server.installModel(model, reportProgress);
+          this.publishStatus(webview);
           await Telemetry.send("granite.setup.model.install", { model });
         }
       }
 
       // After installing models, configure the assistant
       await this.server.configureAssistant(
-        graniteConfiguration.chatModelId,
-        graniteConfiguration.tabModelId,
-        graniteConfiguration.embeddingsModelId
+        chatModel,
+        tabModel,
+        embeddingsModel
       );
       console.log("Granite Code AI-Assistant setup complete");
       await Telemetry.send("granite.setup.success", {
-        chatModelId: graniteConfiguration.chatModelId ?? 'none',
-        tabModelId: graniteConfiguration.tabModelId ?? 'none',
-        embeddingsModelId: graniteConfiguration.embeddingsModelId ?? 'none',
+        chatModelId: chatModel ?? 'none',
+        tabModelId: tabModel ?? 'none',
+        embeddingsModelId: embeddingsModel ?? 'none',
       });
     } catch (error: any) {
       //if error is CancellationError, then we can ignore it
@@ -363,9 +372,9 @@ export class SetupGranitePage {
       // Generic error handling for all errors
       await Telemetry.send("granite.setup.error", {
         error: error?.message ?? 'unknown error',
-        chatModelId: graniteConfiguration.chatModelId ?? 'none',
-        tabModelId: graniteConfiguration.tabModelId ?? 'none',
-        embeddingsModelId: graniteConfiguration.embeddingsModelId ?? 'none',
+        chatModelId: chatModel ?? 'none',
+        tabModelId: tabModel ?? 'none',
+        embeddingsModelId: embeddingsModel ?? 'none',
       });
 
       // Show a generic error message to the user
@@ -375,7 +384,7 @@ export class SetupGranitePage {
       throw error;
     }
 
-    // Trigger the next UI flow after successful setup
+    // Display Continue Chat UI next
     commands.executeCommand("continue.continueGUIView.focus");
   }
 
