@@ -97,7 +97,7 @@ const ModelList: React.FC<ModelListProps> = ({ className, label, value, onChange
                         styles={customStyles}
                         formatOptionLabel={formatOptionLabel}
                     />
-                    {status === null ? ('') : !status && !progress && <span className='info-label' style={{ display: 'flex', alignItems: 'center' }}> (will be pulled automatically)</span>}
+                    {status === null ? null : !status && !progress && <span className='info-label' style={{ display: 'flex', alignItems: 'center' }}> (will be pulled automatically)</span>}
 
                 </div>
             </div>

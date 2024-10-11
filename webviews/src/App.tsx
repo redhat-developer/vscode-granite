@@ -34,7 +34,10 @@ function App() {
 
   const [isKeepExistingConfigSelected, setIsKeepExistingConfigSelected] = useState(false);
 
-  const isModelAvailable = useCallback((model: string | null): boolean => {
+  const isModelAvailable = useCallback((model: string | null): boolean | null => {
+    if (model===null) {
+      return null;
+    }
     if (!model) {
       return false;
     }
@@ -193,7 +196,7 @@ function App() {
           label="Chat model"
           value={chatModel}
           onChange={(e) => setChatModel(e?.value ?? null)}
-          status={chatModel === null ? (null) : (isModelAvailable(chatModel))}
+          status={isModelAvailable(chatModel ?? null)}
           options={modelOptions}
           progress={chatModel ? modelPullProgress[chatModel] : undefined}
           disabled={!enabled}
@@ -204,7 +207,7 @@ function App() {
           label="Tab completion model"
           value={tabModel}
           onChange={(e) => setTabModel(e?.value ?? null)}
-          status={tabModel === null ? (null) : (isModelAvailable(tabModel))}
+          status={isModelAvailable(tabModel ?? null)}
           options={modelOptions}
           progress={tabModel ? modelPullProgress[tabModel] : undefined}
           disabled={!enabled}
@@ -215,7 +218,7 @@ function App() {
           label="Embeddings model"
           value={embeddingsModel}
           onChange={(e) => setEmbeddingsModel(e?.value ?? null)}
-          status={embeddingsModel === null ? (null) : (isModelAvailable(embeddingsModel))}
+          status={isModelAvailable(embeddingsModel ?? null)}
           options={embeddingsOptions}
           progress={embeddingsModel ? modelPullProgress[embeddingsModel] : undefined}
           disabled={!enabled}
