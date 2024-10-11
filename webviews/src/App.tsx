@@ -11,10 +11,12 @@ function App() {
     { label: 'granite-code:3b', value: 'granite-code:3b', info: '2.0 GB' },
     { label: 'granite-code:8b', value: 'granite-code:8b', info: '4.6 GB' },
     { label: 'granite-code:20b', value: 'granite-code:20b', info: '12 GB' },
-    { label: 'granite-code:34b', value: 'granite-code:34b', info: '19 GB' }
+    { label: 'granite-code:34b', value: 'granite-code:34b', info: '19 GB' },
+    { label: 'Keep existing configuration', value: null, info: null }
   ];
   const embeddingsOptions: ModelOption[] = [
-    { label: 'nomic-embed-text', value: 'nomic-embed-text:latest', info: '274 MB' }
+    { label: 'nomic-embed-text', value: 'nomic-embed-text:latest', info: '274 MB' },
+    { label: 'Keep existing configuration', value: null, info: null }
   ];
   const [tabModel, setTabModel] = useState<string | null>(modelOptions[1].value); //use 8b by default
   const [chatModel, setChatModel] = useState<string | null>(modelOptions[1].value);//use 8b by default
@@ -30,7 +32,12 @@ function App() {
 
   const [enabled, setEnabled] = useState<boolean>(true);
 
-  const isModelAvailable = useCallback((model: string | null): boolean => {
+  const [isKeepExistingConfigSelected, setIsKeepExistingConfigSelected] = useState(false);
+
+  const isModelAvailable = useCallback((model: string | null): boolean | null => {
+    if (model===null) {
+      return null;
+    }
     if (!model) {
       return false;
     }
@@ -142,6 +149,15 @@ function App() {
     };
   }, [status, availableModels]);
 
+  useEffect(() => {
+    const checkKeepExistingConfig = 
+      chatModel === null && 
+      tabModel === null && 
+      embeddingsModel === null;
+
+    setIsKeepExistingConfigSelected(checkKeepExistingConfig);
+  }, [chatModel, tabModel, embeddingsModel]);
+
   return (
     <main className="main-wrapper">
       <h1 className="main-title">Setup IBM Granite Code as your code assistant with Continue</h1>
@@ -209,7 +225,7 @@ function App() {
         />
 
         <div className="final-setup-group">
-          <button className="install-button" onClick={handleSetupGraniteClick} disabled={status !== 'installed' || !enabled}>Setup Granite Code</button>
+          <button className="install-button" onClick={handleSetupGraniteClick} disabled={status !== 'installed' || !enabled || isKeepExistingConfigSelected}>Setup Granite Code</button>
         </div>
       </div>
     </main>
