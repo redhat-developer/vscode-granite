@@ -196,7 +196,7 @@ function App() {
           label="Chat model"
           value={chatModel}
           onChange={(e) => setChatModel(e?.value ?? null)}
-          status={isModelAvailable(chatModel ?? null)}
+          status={isModelAvailable(chatModel)}
           options={modelOptions}
           progress={chatModel ? modelPullProgress[chatModel] : undefined}
           disabled={!enabled}
@@ -207,7 +207,7 @@ function App() {
           label="Tab completion model"
           value={tabModel}
           onChange={(e) => setTabModel(e?.value ?? null)}
-          status={isModelAvailable(tabModel ?? null)}
+          status={isModelAvailable(tabModel)}
           options={modelOptions}
           progress={tabModel ? modelPullProgress[tabModel] : undefined}
           disabled={!enabled}
@@ -218,7 +218,7 @@ function App() {
           label="Embeddings model"
           value={embeddingsModel}
           onChange={(e) => setEmbeddingsModel(e?.value ?? null)}
-          status={isModelAvailable(embeddingsModel ?? null)}
+          status={isModelAvailable(embeddingsModel)}
           options={embeddingsOptions}
           progress={embeddingsModel ? modelPullProgress[embeddingsModel] : undefined}
           disabled={!enabled}
