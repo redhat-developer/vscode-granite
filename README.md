@@ -31,7 +31,7 @@ Granite Code comes in a wide range of sizes to fit your workstation's available 
 For more details, refer to [Granite Code Models](https://github.com/ibm-granite/granite-code-models)
 
 ##### Workflow of Vscode-Granite
-   ![workflow](media/workflow.svg)
+   ![workflow](media/workflow.png){width=300px}
 #### Installation Prerequisites:
   * OS: Cross Platform 
   * DISK SPACE :Minimum 30 GB 
