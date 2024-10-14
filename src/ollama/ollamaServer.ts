@@ -320,8 +320,12 @@ async function isHomebrewAvailable(): Promise<boolean> {
     //TODO Would that be an issue on WSL2?
     return false;
   }
-  const result = await executeCommand("which", ["brew"]);
-  return "brew not found" !== result;
+  try {
+    const result = await executeCommand("which", ["brew"]);
+    return "brew not found" !== result;
+  } catch (e) {
+    return false;
+  }
 }
 
 function isLinux(): boolean {
