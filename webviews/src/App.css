@@ -168,6 +168,31 @@ button:disabled {
   padding: 5px 5px 0;
 }
 
+/* Margin Override classes */
+.m-0 {
+  margin: 0 !important;
+}
+.mb-1 {
+  margin-bottom: 0.5rem !important;
+}
+
+.main-description {
+  max-width: 500px;
+  font-size: 0.8rem;
+  margin-bottom: 10px;
+  background-color: var(--vscode-sideBar-background);
+  /* Background color based on the theme */
+  border-radius: 4px;
+  color: var(--vscode-editor-foreground);
+  /* Text color based on theme */
+  padding: 10px 14px;
+}
+
+.main-description>p {
+  position: relative;
+  line-height: 1.2rem;
+  color: var(--vscode-terminal-background);
+}
 @media (max-width: 767px) {
   .main-wrapper .form-group-wrapper {
     width: calc(100% - 50px);
