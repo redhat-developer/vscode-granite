@@ -4,6 +4,7 @@
   "description": "Use IBM Granite Code LLM as your Code Assistant",
   "publisher": "redhat",
   "version": "0.0.1",
+  "icon": "icons/logo.png",
   "license": "Apache-2.0",
   "engines": {
     "vscode": "^1.88.0"
