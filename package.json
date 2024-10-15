@@ -3,7 +3,7 @@
   "displayName": "Granite Code Assistant",
   "description": "Use IBM Granite Code LLM as your Code Assistant",
   "publisher": "redhat",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "icon": "icons/logo.png",
   "license": "Apache-2.0",
   "engines": {
