@@ -34,13 +34,13 @@ For more details, refer to [Granite Code Models](https://github.com/ibm-granite/
   * OS: Cross Platform 
   * DISK SPACE :Minimum 30 GB 
   * latest [Visual Studio Code](https://code.visualstudio.com/)
-#### Use Vscode-granite UI to install extention and models
+#### Use Vscode-granite UI to install extension and models
 
 This project provides a user-friendly UI that simplifies the installation and management of extensions and Granite models. Developers can easily set up and configure their environment, and access the setup wizard anytime via the command palette by running "Granite: Setup Granite Code as code assistant".
 
- step 1: **Install the Extenstion**
+ step 1: **Install the Extension**
 
-Open VSCode and navigate to the Extension tab on the left sidebar. select on "vscode-granite" then click "install" to install the extension.
+Open VSCode and navigate to the Extensions tab on the left sidebar. select on "vscode-granite" then click "install" to install the extension.
  
  step 2:  **Install ollama**
 
