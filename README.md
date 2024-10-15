@@ -22,7 +22,7 @@ We aim to implement a feature-rich local AI co-pilot for Visual Studio Code, by 
 
 For more details, refer to [continue.dev](https://github.com/continuedev/continue)
 
-#### Models and Workflow of Vscode-Granite
+#### Granite code models 
 
 vscode-granite uses the Granite Code model, which is optimized for enterprise software development workflows and performs well across a range of coding tasks (e.g., code generation, fixing, and explanation), making it a versatile "all-around" code model.
 Granite Code comes in a wide range of sizes to fit your workstation's available resources. Generally, the bigger the model, the better the results.
@@ -30,8 +30,6 @@ Granite Code comes in a wide range of sizes to fit your workstation's available 
 **Recommendation:** Model Size 8b for chat, 8b for tab code completion.
 For more details, refer to [Granite Code Models](https://github.com/ibm-granite/granite-code-models)
 
-##### Workflow of Vscode-Granite
-   ![workflow](media/workflow.png){width=300px}
 #### Installation Prerequisites:
   * OS: Cross Platform 
   * DISK SPACE :Minimum 30 GB 
