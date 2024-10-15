@@ -1,72 +1,81 @@
-# vscode-granite
-<!-- ABOUT THE PROJECT -->
-### About The Project
+# Granite Code Assistant
 
-We aim to implement a feature-rich local AI co-pilot for Visual Studio Code, by utilizing a collection of open-source components: [Granite code models](https://github.com/ibm-granite/granite-code-models), [Ollama](https://github.com/ollama/ollama), and [Continue.dev](https://github.com/continuedev/continue). By running Granite models locally, we ensure compliance with data privacy and licensing requirements. Our integration focuses on working with Continue to seamlessly interact with Visual Studio Code, helping developers streamline their workflow, boost productivity, and write higher-quality code.
+`Granite Code Assistant` simplifies the setup of the [Continue extension](https://marketplace.visualstudio.com/items?itemName=Continue.continue) to integrate [IBM](https://www.ibm.com/)'s [Granite code models](https://github.com/ibm-granite/granite-code-models), as your code assistant in Visual Studio Code, using [Ollama](https://ollama.com/) as the runtime environment.
 
-#### Reasons to Choose Ollama
+By leveraging Granite code models and open-source components such as Ollama and Continue, you can write, generate, explain, or document code with full control over your data, ensuring it stays private and secure on your machine.
 
-- **Data Privacy:** Many corporations have privacy regulations that prohibit sending internal code or data to third-party services.
-- **Generated Material Licensing:** Many models, even those with permissive usage licenses, do not disclose their training data and therefore may produce output that is derived from training material with licensing restrictions.
-- **Cost:** Many of these tools are paid solutions that require investment by the organization. For larger organizations, this would often include paid support and maintenance contracts, which can be extremely costly and slow to negotiate.
+## Getting Started
 
-#### Why Continue.dev
- 
- [Continue](https://docs.continue.dev) is the leading open-source AI code assistant. You can connect any models and any context to build custom autocomplete and chat experiences inside [VS Code](https://marketplace.visualstudio.com/items?itemName=Continue.continue) and [JetBrains](https://plugins.jetbrains.com/plugin/22707-continue-extension)
+This project features an intuitive UI, designed to simplify the installation and management of Ollama and Granite Code models. The first time the extension starts, a setup wizard is automatically launched to guide you through the installation process.
 
-* Easily understand code sections
-* Tab to autocomplete code suggestions
-* Refactor functions where you are coding
-* Ask questions about your codebase
-* Quickly use documentation as context
+You can later open the setup wizard anytime from the command palette by executing the *"Granite: Setup Granite Code as code assistant"* command.
 
-For more details, refer to [continue.dev](https://github.com/continuedev/continue)
+### Installation Prerequisites
 
-#### Granite code models 
+- **OS:** MacOS, Linux or Windows
+- **Disk Space:** Minimum 30 GB
+- **Latest Version of [Visual Studio Code](https://code.visualstudio.com/)**
 
-vscode-granite uses the Granite Code model, which is optimized for enterprise software development workflows and performs well across a range of coding tasks (e.g., code generation, fixing, and explanation), making it a versatile "all-around" code model.
-Granite Code comes in a wide range of sizes to fit your workstation's available resources. Generally, the bigger the model, the better the results.
+### Step 1: Install the Extension
 
-**Recommendation:** Model Size 8b for chat, 8b for tab code completion.
-For more details, refer to [Granite Code Models](https://github.com/ibm-granite/granite-code-models)
+Open Visual Studio Code, navigate to the Extensions tab on the left sidebar, select "vscode-granite," and click "install."
 
-#### Installation Prerequisites:
-  * OS: Cross Platform 
-  * DISK SPACE :Minimum 30 GB 
-  * latest [Visual Studio Code](https://code.visualstudio.com/)
-#### Use Vscode-granite UI to install extension and models
+The [Continue.dev](https://continue.dev/) extension will be automatically added as a dependency, if not already installed. If you installed `Granite Code Assistant` manually, you may need to also install the Continue extension separately.
 
-This project provides a user-friendly UI that simplifies the installation and management of extensions and Granite models. Developers can easily set up and configure their environment, and access the setup wizard anytime via the command palette by running "Granite: Setup Granite Code as code assistant".
+### Step 2: Install Ollama
 
- step 1: **Install the Extension**
+Once the extension is running, the setup wizard will prompt you to install Ollama.
 
-Open VSCode and navigate to the Extensions tab on the left sidebar. select on "vscode-granite" then click "install" to install the extension.
- 
- step 2:  **Install ollama**
+The following Ollama installation options are available :
 
-Once the extension is running, a new window will prompt you to install Ollama. 
-
-The [Continue.dev](https://continue.dev/) extension, if not already installed, will be automatically added as a dependency during this process. 
-
-you will be presented with the following installation options for installing ollama :
-
-1. **Install with Homebrew**: If Homebrew is detected on your machine (Mac/Linux).
-2. **Install with Script**: Available on Linux.
-3. **Install Manually**: Supported on all platforms( If you choose to install Ollama manually, you will be redirected to the official [Ollama download page](https://ollama.com/download) to complete the installation process).
+1. **Install with Homebrew:** If Homebrew is detected on your machine (Mac/Linux).
+2. **Install with Script:** Available on Linux.
+3. **Install Manually:** Supported on all platforms. If you choose this option, you will be redirected to the official [Ollama download page](https://ollama.com/download) to complete the installation.
 
 Once Ollama is installed, the page will refresh automatically.
 
 ![installollama](media/installollama.gif)
-step 3: **Install granite models** 
 
- select the Granite model you wish to install. Follow the on-screen instruction to complete the setup of your models.
+### Step 3: Install Granite Models
+
+Select the Granite model(s) you wish to install and follow the on-screen instructions to complete the setup.
+
 ![installmodels](media/installmodels.gif)
-Once the models are pulled into Ollama, Continue will be configured automatically to use them, the Continue chat view will open , enabling you to interact with the models via the UI.
+
+After the models are pulled into Ollama, Continue will be configured automatically to use them, and the Continue chat view will open, allowing you to interact with the models via the UI or tab completion.
+
+## About the Stack
+
+### IBM Granite Code Models
+
+The Granite Code models are optimized for enterprise software development workflows, performing well across various coding tasks (e.g., code generation, fixing, and explanation). They are versatile "all-around" code models.
+
+Granite Code comes in various sizes to fit your workstation's resources. Generally, larger models yield better results but require more disk space, memory, and processing power.
+
+**Recommendation:** Use Model Size 8B for chat and 8B for tab code completion.
+
+For more details, refer to [Granite Code Models](https://github.com/ibm-granite/granite-code-models).
+
+### Ollama
+
+Many corporations have privacy regulations that prohibit sending internal code or data to third-party services. Running LLMs locally allows you to sidestep these restrictions and ensures no sensitive information is sent to a remote service. Ollama is one of the simplest and most popular open-source solutions for running LLMs locally.
+
+### Continue.dev
+
+[Continue](https://docs.continue.dev) is the leading open-source AI code assistant. You can connect any models and contexts to build custom autocomplete and chat experiences inside [VS Code](https://marketplace.visualstudio.com/items?itemName=Continue.continue) and [JetBrains](https://plugins.jetbrains.com/plugin/22707-continue-extension).
+
+- Easily understand code sections
+- Tab to autocomplete code suggestions
+- Refactor functions while coding
+- Ask questions about your codebase
+- Quickly use documentation as context
+
+For more details, refer to [continue.dev](https://github.com/continuedev/continue).
+
 ### License
-Apache 2.0, See [LICENSE](LICENSE) for more information.
+
+This project is licensed under Apache 2.0. See [LICENSE](LICENSE) for more information.
 
 ### Telemetry
 
-With your approval, the vscode-granite extension collects anonymous [usage data](USAGE_DATA.md) and sends it to Red Hat servers to help improve our products and services.
-Read our [privacy statement](https://developers.redhat.com/article/tool-data-collection) to learn more.
-This extension respects the `redhat.telemetry.enabled` setting, which you can learn more about at https://github.com/redhat-developer/vscode-redhat-telemetry#how-to-disable-telemetry-reporting
+With your approval, the vscode-granite extension collects anonymous [usage data](USAGE_DATA.md) and sends it to Red Hat servers to help improve our products and services. Read our [privacy statement](https://developers.redhat.com/article/tool-data-collection) to learn more. This extension respects the `redhat.telemetry.enabled` setting, which you can learn more about at [Red Hat Telemetry](https://github.com/redhat-developer/vscode-redhat-telemetry#how-to-disable-telemetry-reporting).
