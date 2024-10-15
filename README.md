@@ -32,7 +32,7 @@ The following Ollama installation options are available :
 2. **Install with Script:** Available on Linux.
 3. **Install Manually:** Supported on all platforms. If you choose this option, you will be redirected to the official [Ollama download page](https://ollama.com/download) to complete the installation.
 
-Once Ollama is installed, the page will refresh automatically.
+Once Ollama is installed, the page will refresh automatically. Depending on the security settings of your plateform, you may need to start Ollama manually the first time.
 
 ![installollama](media/installollama.gif)
 

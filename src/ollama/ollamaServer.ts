@@ -47,7 +47,9 @@ export class OllamaServer implements IModelServer {
       this.currentStatus = ServerStatus.started;
     } else {
       const ollamaInstalled = await this.isServerInstalled();
-      this.currentStatus = (ollamaInstalled) ? ServerStatus.stopped : ServerStatus.missing;
+      if (this.currentStatus !== ServerStatus.installing) {
+        this.currentStatus = (ollamaInstalled) ? ServerStatus.stopped : ServerStatus.missing;
+      }
     }
     return this.currentStatus;
   }
@@ -89,6 +91,7 @@ export class OllamaServer implements IModelServer {
   async installServer(mode: string): Promise<boolean> {
     switch (mode) {
       case "homebrew": {
+        this.currentStatus = ServerStatus.installing; //We need to detect the terminal output to know when installation stopped (successfully or not)
         await terminalCommandRunner.runInTerminal(
           "clear && brew install --cask ollama && sleep 3 && ollama list", //run ollama list to trigger the ollama daemon
           {
@@ -99,7 +102,8 @@ export class OllamaServer implements IModelServer {
         return true;
       }
       case "script":
-        await terminalCommandRunner.runInTerminal(
+        this.currentStatus = ServerStatus.installing;
+        await terminalCommandRunner.runInTerminal(//We need to detect the terminal output to know when installation stopped (successfully or not)
           "clear && curl -fsSL https://ollama.com/install.sh | sh",
           {
             name: "Granite Code Setup",
