@@ -72,6 +72,10 @@ Many corporations have privacy regulations that prohibit sending internal code o
 
 For more details, refer to [continue.dev](https://github.com/continuedev/continue).
 
+
+### How to Contribute to this Project?
+ 
+ Please check our [Guidelines](https://github.com/redhat-developer/vscode-granite/blob/main/CONTRIBUTING.md) to contribute to our project.
 ### License
 
 This project is licensed under Apache 2.0. See [LICENSE](LICENSE) for more information.
