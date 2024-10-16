@@ -68,10 +68,6 @@ jobs:
       - name: Install dependencies
         run: npm run install:ci
 
-      - name: Extract version
-        run: |
-          echo "EXT_VERSION=$(cat package.json | jq -r .version)" >> $GITHUB_ENV
-
       - name: Prepare Pre-Release version
         if: ${{ github.event_name == 'schedule' || inputs.publishPreRelease == 'true' }}
         run: |
@@ -81,6 +77,7 @@ jobs:
 
       - name: Package extension
         run: |
+          echo "EXT_VERSION=$(cat package.json | jq -r .version)" >> $GITHUB_ENV
           npx @vscode/vsce package ${{ env.publishPreReleaseFlag }}
 
       - name: Publish to GH Release Tab
@@ -97,12 +94,12 @@ jobs:
       - name: Publish to VS Code Marketplace
         if: ${{ github.event_name == 'schedule' || inputs.publishToMarketPlace == 'true' || inputs.publishPreRelease == 'true' }}
         run: |
-          npx @vscode/vsce publish -p ${{ secrets.VSCODE_MARKETPLACE_TOKEN }} --packagePath vscode-granite-*.vsix
+          npx @vscode/vsce publish -p ${{ secrets.VSCODE_MARKETPLACE_TOKEN }} --packagePath vscode-granite-${{ env.EXT_VERSION }}.vsix
 
       - name: Publish to OpenVSX Registry
         if: ${{ github.event_name == 'schedule' || inputs.publishToOVSX == 'true' || inputs.publishPreRelease == 'true' }}
         run: |
-          npx ovsx publish -p ${{ secrets.OVSX_MARKETPLACE_TOKEN }}  --packagePath vscode-granite-*.vsix
+          npx ovsx publish -p ${{ secrets.OVSX_MARKETPLACE_TOKEN }}  --packagePath vscode-granite-${{ env.EXT_VERSION }}.vsix
 
   post-release-job:
     if: ${{ inputs.publishToMarketPlace == 'true' && inputs.publishToOVSX == 'true' && inputs.EXTENSION_TAG == 'main' }}
