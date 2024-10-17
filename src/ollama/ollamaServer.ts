@@ -1,5 +1,6 @@
 import os from "os";
-import { CancellationError, env, Progress, ProgressLocation, Uri, window } from "vscode";
+import path from 'path';
+import { CancellationError, env, ExtensionContext, Progress, ProgressLocation, Uri, window } from "vscode";
 import { DEFAULT_MODEL_INFO, ModelInfo } from "../commons/modelInfo";
 import { getStandardName } from "../commons/naming";
 import { ProgressData } from "../commons/progressData";
@@ -16,24 +17,28 @@ export class OllamaServer implements IModelServer {
 
   private currentStatus = ServerStatus.unknown;
   protected installingModels = new Set<string>();
-  constructor(private name: string = "Ollama", private serverUrl = "http://localhost:11434") { }
+  constructor(private context: ExtensionContext, private name: string = "Ollama", private serverUrl = "http://localhost:11434") { }
 
   getName(): string {
     return this.name;
   }
 
-  async supportedInstallModes(): Promise<{ id: string; label: string }[]> {
+  async supportedInstallModes(): Promise<{ id: string; label: string, supportsRefresh: boolean }[]> {
     const modes = [];
-
+    if (isLinux()) {
+      if (isDevspaces()) {
+        // sudo is not available in devspaces, so we can't use ollama's or manual install script
+        return [{ id: "devspaces", label: "See Red Hat Dev Spaces instructions", supportsRefresh: false }];
+      } else {
+        // on linux
+        modes.push({ id: "script", label: "Install with script", supportsRefresh: true });
+      }
+    }
     if (await isHomebrewAvailable()) {
       // homebrew is available
-      modes.push({ id: "homebrew", label: "Install with Homebrew" });
+      modes.push({ id: "homebrew", label: "Install with Homebrew", supportsRefresh: true });
     }
-    if (isLinux()) {
-      // on linux
-      modes.push({ id: "script", label: "Install with script" });
-    }
-    modes.push({ id: "manual", label: "Install manually" });
+    modes.push({ id: "manual", label: "Install manually", supportsRefresh: true });
     return modes;
   }
 
@@ -89,31 +94,48 @@ export class OllamaServer implements IModelServer {
   }
 
   async installServer(mode: string): Promise<boolean> {
+    let installCommand: string | undefined;
     switch (mode) {
+      case "devspaces": {
+        env.openExternal(Uri.parse("https://developers.redhat.com/articles/2024/08/12/integrate-private-ai-coding-assistant-ollama"));
+        return false;
+      }
       case "homebrew": {
         this.currentStatus = ServerStatus.installing; //We need to detect the terminal output to know when installation stopped (successfully or not)
-        await terminalCommandRunner.runInTerminal(
-          "clear && brew install --cask ollama && sleep 3 && ollama list", //run ollama list to trigger the ollama daemon
-          {
-            name: "Granite Code Setup",
-            show: true,
-          }
-        );
-        return true;
+        installCommand = [
+          'clear',
+          'set -e',  // Exit immediately if a command exits with a non-zero status
+          'brew install --cask ollama',
+          'sleep 3',
+          'ollama list',  // run ollama list to start the server
+        ].join(' && ');
+        break;
       }
       case "script":
-        this.currentStatus = ServerStatus.installing;
-        await terminalCommandRunner.runInTerminal(//We need to detect the terminal output to know when installation stopped (successfully or not)
-          "clear && curl -fsSL https://ollama.com/install.sh | sh",
-          {
-            name: "Granite Code Setup",
-            show: true,
-          }
-        );
-        return true;
+        const start_ollama_sh = path.join(this.context.extensionPath, 'start_ollama.sh');
+        installCommand = [
+          'clear',
+          'set -e',  // Exit immediately if a command exits with a non-zero status
+          'command -v curl >/dev/null 2>&1 || { echo >&2 "curl is required but not installed. Aborting."; exit 1; }',
+          'curl -fsSL https://ollama.com/install.sh | sh',
+          `chmod +x "${start_ollama_sh}"`,  // Ensure the script is executable
+          `"${start_ollama_sh}"`,  // Use quotes in case the path contains spaces
+        ].join(' && ');
+        break;
       case "manual":
       default:
         env.openExternal(Uri.parse("https://ollama.com/download"));
+        return true;
+    }
+    if (installCommand) {
+      this.currentStatus = ServerStatus.installing;
+      await terminalCommandRunner.runInTerminal(
+        installCommand,
+        {
+          name: "Granite Code Setup",
+          show: true,
+        }
+      );
     }
     return true;
   }
@@ -339,3 +361,8 @@ function isLinux(): boolean {
 function isWin(): boolean {
   return PLATFORM.startsWith("win");
 }
+function isDevspaces() {
+  //sudo is not available on Red Hat DevSpaces
+  return process.env['DEVWORKSPACE_ID'] !== undefined;
+}
+

@@ -1,5 +1,5 @@
 //Mock server for testing
-import { CancellationError, env, Progress, ProgressLocation, Uri, window } from "vscode";
+import { CancellationError, env, ExtensionContext, Progress, ProgressLocation, Uri, window } from "vscode";
 import { getStandardName } from "../commons/naming";
 import { ProgressData } from "../commons/progressData";
 import { ModelStatus, ServerStatus } from "../commons/statuses";
@@ -50,7 +50,7 @@ export class MockServer extends OllamaServer implements IModelServer {
    *                will simulate download operations.
    */
   constructor(private speed: number) {
-    super("Mock Server");
+    super({} as ExtensionContext, "Mock Server");
     this.speed *= 1024 * 1024; // Convert speed to bytes per second
   }
   async startServer(): Promise<boolean> {
@@ -218,8 +218,8 @@ export class MockServer extends OllamaServer implements IModelServer {
     });
   }
 
-  async supportedInstallModes(): Promise<{ id: string; label: string; }[]> {
-    return Promise.resolve([{ id: 'mock', label: 'Install Magically' }, { id: 'manual', label: 'Install Manually' }]);
+  async supportedInstallModes(): Promise<{ id: string; label: string; supportsRefresh: boolean }[]> {
+    return Promise.resolve([{ id: 'mock', label: 'Install Magically', supportsRefresh: true }, { id: 'manual', label: 'Install Manually', supportsRefresh: true }]);
   }
 
   async listModels(): Promise<string[]> {

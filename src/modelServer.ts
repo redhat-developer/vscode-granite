@@ -8,7 +8,7 @@ export interface IModelServer {
   installServer(mode: string): Promise<boolean>;
   getModelStatus(modelName?: string): Promise<ModelStatus>
   installModel(modelName: string, reportProgress: (progress: ProgressData) => void): Promise<any>;
-  supportedInstallModes(): Promise<{ id: string; label: string }[]>; //manual, script, homebrew
+  supportedInstallModes(): Promise<{ id: string; label: string, supportsRefresh: boolean }[]>; //manual, script, homebrew
   configureAssistant(
     chatModelName: string | null,
     tabModelName: string | null,

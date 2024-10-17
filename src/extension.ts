@@ -9,7 +9,7 @@ export async function activate(context: ExtensionContext) {
   const setupGraniteCmd = commands.registerCommand("vscode-granite.setup", async () => {
     await Telemetry.send("granite.commands.setup");
     await ollamaLibraryWarmup(DOWNLOADABLE_MODELS);
-    SetupGranitePage.render(context.extensionUri, context.extensionMode);
+    SetupGranitePage.render(context);
   });
   context.subscriptions.push(setupGraniteCmd);
   const hasRunBefore = context.globalState.get('hasRunSetup', false);
