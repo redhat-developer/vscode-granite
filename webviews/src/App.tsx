@@ -30,7 +30,7 @@ function App() {
 
   const [serverStatus, setServerStatus] = useState<ServerStatus>(ServerStatus.unknown);
   const [modelStatuses, setModelStatuses] = useState<Map<string, ModelStatus>>(new Map());
-  const [installationModes, setInstallationModes] = useState<{ id: string, label: string }[]>([]);
+  const [installationModes, setInstallationModes] = useState<{ id: string, label: string, supportsRefresh: true }[]>([]);
 
   const [enabled, setEnabled] = useState<boolean>(true);
 
@@ -202,7 +202,9 @@ function App() {
             {/* New section for additional buttons */}
             {serverStatus === ServerStatus.missing && installationModes.length > 0 && (
               <div className="install-options">
-                <p><span>This page will refresh once Ollama is installed.</span></p>
+                {installationModes.some(mode => mode.supportsRefresh === true) && (
+                  <p><span>This page will refresh once Ollama is installed.</span></p>
+                )}
                 {installationModes.map((mode) => (
                   <button
                     key={mode.id}

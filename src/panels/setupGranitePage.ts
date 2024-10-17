@@ -4,14 +4,14 @@ import {
   CancellationError,
   commands,
   Disposable,
-  ExtensionMode,
+  ExtensionContext,
   Uri,
   ViewColumn,
   Webview,
   WebviewPanel,
   window
 } from "vscode";
-import { DOWNLOADABLE_MODELS } from '../commons/constants';
+import { DOWNLOADABLE_MODELS, isDevMode } from '../commons/constants';
 import { ProgressData } from "../commons/progressData";
 import { ModelStatus, ServerStatus } from '../commons/statuses';
 import { IModelServer } from '../modelServer';
@@ -52,11 +52,11 @@ export class SetupGranitePage {
    * @param panel A reference to the webview panel
    * @param extensionUri The URI of the directory containing the extension
    */
-  private constructor(panel: WebviewPanel, extensionUri: Uri, extensionMode: ExtensionMode) {
+  private constructor(panel: WebviewPanel, context: ExtensionContext) {
     this._panel = panel;
     this.server = useMockServer ?
       new MockServer(300) :
-      new OllamaServer();
+      new OllamaServer(context);
     // Set an event listener to listen for when the panel is disposed (i.e. when the user closes
     // the panel or when the panel is closed programmatically)
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
@@ -64,14 +64,14 @@ export class SetupGranitePage {
     // Set the HTML content for the webview panel
     this._panel.webview.html = this._getWebviewContent(
       this._panel.webview,
-      extensionUri
+      context.extensionUri
     );
 
     // Set an event listener to listen for messages passed from the webview context
     this._setWebviewMessageListener(this._panel.webview);
 
-    if (extensionMode === ExtensionMode.Development) {
-      this._setupFileWatcher(extensionUri);
+    if (isDevMode) {
+      this._setupFileWatcher(context.extensionUri);
     }
   }
 
@@ -115,12 +115,13 @@ export class SetupGranitePage {
    *
    * @param extensionUri The URI of the directory containing the extension.
    */
-  public static render(extensionUri: Uri, extensionMode: ExtensionMode) {
+  public static render(context: ExtensionContext) {
     if (SetupGranitePage.currentPanel) {
       // If the webview panel already exists reveal it
       SetupGranitePage.currentPanel._panel.reveal(ViewColumn.One);
     } else {
       // If a webview panel does not already exist create and show a new one
+      const extensionUri = context.extensionUri;
       const panel = window.createWebviewPanel(
         // Panel view type
         "modelSetup",
@@ -140,7 +141,7 @@ export class SetupGranitePage {
         }
       );
 
-      SetupGranitePage.currentPanel = new SetupGranitePage(panel, extensionUri, extensionMode);
+      SetupGranitePage.currentPanel = new SetupGranitePage(panel, context);
     }
   }
 
