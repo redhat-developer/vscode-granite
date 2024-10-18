@@ -10,32 +10,98 @@ import * as os from "os";
 import * as path from "path";
 import * as vscode from "vscode";
 
-export interface AiAssistantConfigurationRequest {
-  chatModelName: string | null;
-  tabModelName: string | null;
-  embeddingsModelName: string | null;
-  inferenceEndpoint?: string;
+interface ModelConfig {
+  model: string;
+  title?: string;
+  apiBase?: string;
   provider?: string;
-  systemMessage?: string;
   contextLength?: number;
+  systemMessage?: string;
+  completionOptions?: CompletionOptions;
 }
 
-interface Model {
-  title: string;
-  model: string;
-  apiBase: string;
-  provider: string;
-  completionOptions: any;
+interface CompletionOptions {
+  maxTokens?: number;
+  temperature?: number;
+  topK?: number;
+  topP?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
 }
 
-interface TabAutocompleteModel {
-  title: string;
-  model: string;
-  provider?: string;
+export interface AiAssistantConfigurationRequest {
+  chatModel: string | null;
+  tabCompletionModel: string | null;
+  embeddingsModel: string | null;
+}
+
+const DEFAULT_CONTEXT_LENGTH = 8192;
+const DEFAULT_API_BASE = "http://localhost:11434";
+const DEFAULT_PROVIDER = "ollama";
+
+const baseConfig: Partial<ModelConfig> = {
+  provider: DEFAULT_PROVIDER,
+};
+
+const baseGraniteConfig: Partial<ModelConfig> = {
+  ...baseConfig,
+  contextLength: DEFAULT_CONTEXT_LENGTH,
+  completionOptions: {
+    maxTokens: 4000,
+    temperature: 0.1,
+    topP: 0.9,
+    topK: 40,
+    presencePenalty: 0.0,
+    frequencyPenalty: 0.1
+  },
+  systemMessage: "You are Granite Code, an AI language model developed by IBM. You are a cautious assistant. You carefully follow instructions. You are helpful and harmless and you follow ethical guidelines and promote positive behavior. You always respond to greetings (for example, hi, hello, g'day, morning, afternoon, evening, night, what's up, nice to meet you, sup, etc) with \"Hello! I am Granite Code, created by IBM. How can I help you today?\". Please do not say anything else and do not start a conversation.",
+};
+
+const modelConfigs: ModelConfig[] = [
+  {
+    model: "granite-code:3b",
+    ...baseGraniteConfig,
+    contextLength: 128000,
+  },
+  {
+    model: "granite-code:8b",
+    ...baseGraniteConfig,
+    contextLength: 128000,
+  },
+  {
+    model: "granite-code:20b",
+    ...baseGraniteConfig,
+  },
+  {
+    model: "granite-code:34b",
+    ...baseGraniteConfig,
+  },
+  {
+    model: "nomic-embed-text",
+    ...baseConfig,
+  }
+];
+
+function getModelConfig(model: string): ModelConfig {
+  let modelConfig = modelConfigs.find(m => m.model === model);
+  if (!modelConfig) {
+    const configTemplate = model.includes("granite") ? baseGraniteConfig : baseConfig;
+    modelConfig = {
+      ...configTemplate,
+      model,
+    };
+  }
+  modelConfig.title = model;
+  return modelConfig;
 }
 
 export class AiAssistantConfigurator {
-  constructor(private request: AiAssistantConfigurationRequest) {}
+
+  private apiBase: string;
+
+  constructor(private request: AiAssistantConfigurationRequest) {
+    this.apiBase = DEFAULT_API_BASE;
+  }
 
   public async openWizard() {
     if (isContinueInstalled()) {
@@ -46,72 +112,61 @@ export class AiAssistantConfigurator {
   }
 
   async configureAssistant() {
-    const model = {
-      title: this.request.chatModelName,
-      model: this.request.chatModelName,
-      completionOptions: {},
-      apiBase: this.request.inferenceEndpoint,
-      provider: this.request.provider,
-      contextLength: this.request.contextLength || 8192,
-      systemMessage:
-        this.request.systemMessage ||
-        "You are a helpful AI assistant. You are a cautious assistant. You carefully follow instructions. You are helpful and harmless and you follow ethical guidelines and promote positive behavior.",
-    } as Model;
     const configFile = path.join(os.homedir(), ".continue/config.json");
     const config = await readConfig(configFile);
     if (!config) {
       return vscode.window.showErrorMessage("No ~/.continue/config.json found");
     }
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const models: Model[] = config.models === undefined ? [] : config.models;
+    const models: ModelConfig[] = config.models === undefined ? [] : config.models;
     // check if model object is already in the config json
     let updateConfig = false;
-    if (this.request.chatModelName) {
-      const existing = models.find(
-        (m) => model.provider === m.provider && model.apiBase === m.apiBase
-      );
+    if (this.request.chatModel) {
+      const modelConfig = getModelConfig(this.request.chatModel);
+      const existing = models.find((m) => modelConfig.provider === m.provider && this.getApiBase(modelConfig) === this.getApiBase(m));
       if (existing) {
-        if (existing.model !== model.model || existing.title !== model.title) {
-          existing.model = model.model;
-          existing.title = model.title;
+        const index = models.indexOf(existing);
+        // if model config is different or it's not the first model, change that
+        if (existing !== modelConfig || index !== 0) {
+          models.splice(index, 1);
+          models.unshift(modelConfig);
           updateConfig = true;
         }
       } else {
-        models.push(model);
+        //push model to the 1st position
+        models.unshift(modelConfig);
         updateConfig = true;
       }
       config.models = models;
     }
     // Configure tab autocomplete model if it exists
-    if (this.request.tabModelName) {
-      const tabAutocompleteModel: TabAutocompleteModel = {
-        title: this.request.tabModelName,
-        model: this.request.tabModelName,
-        provider: this.request.provider,
-      };
-      if (config.tabAutocompleteModel !== tabAutocompleteModel) {
-        config.tabAutocompleteModel = tabAutocompleteModel;
+    if (this.request.tabCompletionModel) {
+      const modelConfig = getModelConfig(this.request.tabCompletionModel);
+      if (modelConfig !== config.tabAutocompleteModel) {
+        config.tabAutocompleteModel = modelConfig;
         updateConfig = true;
       }
     }
 
     // Configure embeddings model if it exists
-    if (this.request.embeddingsModelName) {
-      const embeddingsProvider = {
-        provider: 'ollama',
-        model: this.request.embeddingsModelName,
-      };
-      if (config.embeddingsProvider !== embeddingsProvider) {
-        config.embeddingsProvider = embeddingsProvider;
+    if (this.request.embeddingsModel) {
+      const modelConfig = getModelConfig(this.request.embeddingsModel);
+      if (modelConfig !== config.embeddingsProvider) {
+        config.embeddingsProvider = modelConfig;
         updateConfig = true;
       }
     }
+
     if (updateConfig) {
       await writeConfig(configFile, config);
       vscode.window.showInformationMessage(
-        `${model.model} added to ${configFile}`
+        `Continue configuration completed.`
       );
     }
+  }
+
+  getApiBase(model: ModelConfig): string {
+    return model.apiBase || this.apiBase;
   }
 }
 
