@@ -5,7 +5,7 @@ import { DEFAULT_MODEL_INFO, ModelInfo } from "../commons/modelInfo";
 import { getStandardName } from "../commons/naming";
 import { ProgressData } from "../commons/progressData";
 import { ModelStatus, ServerStatus } from "../commons/statuses";
-import { AiAssistantConfigurationRequest, AiAssistantConfigurator } from "../configureAssistant";
+import { AiAssistantConfigurator } from "../configureAssistant";
 import { IModelServer } from "../modelServer";
 import { terminalCommandRunner } from "../terminal/terminalCommandRunner";
 import { executeCommand } from "../utils/cpUtils";
@@ -209,21 +209,15 @@ export class OllamaServer implements IModelServer {
   }
 
   async configureAssistant(
-    chatModelName: string | null,
-    tabModelName: string | null,
-    embeddingsModelName: string | null
+    chatModel: string | null,
+    tabCompletionModel: string | null,
+    embeddingsModel: string | null
   ): Promise<void> {
-    const request = {
-      chatModelName,
-      tabModelName,
-      embeddingsModelName,
-      provider: "ollama",
-      inferenceEndpoint: this.serverUrl,
-      contextLength: 32000,
-      systemMessage:
-        "You are Granite Chat, an AI language model developed by IBM. You are a cautious assistant. You carefully follow instructions. You are helpful and harmless and you follow ethical guidelines and promote positive behavior. You always respond to greetings (for example, hi, hello, g'day, morning, afternoon, evening, night, what's up, nice to meet you, sup, etc) with \"Hello! I am Granite Chat, created by IBM. How can I help you today?\". Please do not say anything else and do not start a conversation.",
-    } as AiAssistantConfigurationRequest;
-    const assistantConfigurator = new AiAssistantConfigurator(request);
+    const assistantConfigurator = new AiAssistantConfigurator({
+      chatModel,
+      tabCompletionModel,
+      embeddingsModel
+    });
     await assistantConfigurator.configureAssistant();
   }
 
@@ -365,4 +359,5 @@ function isDevspaces() {
   //sudo is not available on Red Hat DevSpaces
   return process.env['DEVWORKSPACE_ID'] !== undefined;
 }
+
 

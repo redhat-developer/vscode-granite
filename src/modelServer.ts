@@ -10,8 +10,8 @@ export interface IModelServer {
   installModel(modelName: string, reportProgress: (progress: ProgressData) => void): Promise<any>;
   supportedInstallModes(): Promise<{ id: string; label: string, supportsRefresh: boolean }[]>; //manual, script, homebrew
   configureAssistant(
-    chatModelName: string | null,
-    tabModelName: string | null,
+    chatModel: string | null,
+    tabModel: string | null,
     embeddingsModel: string | null
   ): Promise<void>;
   listModels(): Promise<string[]>;
