@@ -16,11 +16,19 @@ function App() {
     { label: 'granite-code:34b', value: 'granite-code:34b', info: '19 GB' },
     { label: 'Keep existing configuration', value: null, info: null }
   ];
+  
+  const tabOptions: ModelOption[] = [
+    { label: 'granite-code:3b', value: 'granite-code:3b', info: '2.0 GB' },
+    { label: 'granite-code:8b', value: 'granite-code:8b', info: '4.6 GB' },
+    { label: 'Keep existing configuration', value: null, info: null }
+  ];
+
   const embeddingsOptions: ModelOption[] = [
     { label: 'nomic-embed-text', value: 'nomic-embed-text:latest', info: '274 MB' },
     { label: 'Keep existing configuration', value: null, info: null }
   ];
-  const [tabModel, setTabModel] = useState<string | null>(modelOptions[1].value); //use 8b by default
+
+  const [tabModel, setTabModel] = useState<string | null>(tabOptions[1].value); //use 8b by default
   const [chatModel, setChatModel] = useState<string | null>(modelOptions[1].value);//use 8b by default
   const [embeddingsModel, setEmbeddingsModel] = useState<string | null>(embeddingsOptions[0].value);
 
@@ -237,7 +245,7 @@ function App() {
           value={tabModel}
           onChange={(e) => setTabModel(e?.value ?? null)}
           status={getModelStatus(tabModel)}
-          options={modelOptions}
+          options={tabOptions}
           progress={tabModel ? modelPullProgress[tabModel] : undefined}
           disabled={!enabled}
         />
