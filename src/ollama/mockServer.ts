@@ -1,14 +1,15 @@
 //Mock server for testing
-import { CancellationError, env, Progress, ProgressLocation, Uri, window } from "vscode";
+import { CancellationError, env, ExtensionContext, Progress, ProgressLocation, Uri, window } from "vscode";
+import { getStandardName } from "../commons/naming";
 import { ProgressData } from "../commons/progressData";
+import { ModelStatus, ServerStatus } from "../commons/statuses";
 import { IModelServer } from "../modelServer";
 import { OllamaServer } from "./ollamaServer";
 class MockModel {
   progress: number;
   layers: MockLayer[];
-  constructor(public name: string, public size: number, public installed: boolean = false) {
+  constructor(public name: string, public size: number, public status: ModelStatus = ModelStatus.missing) {
     this.progress = 0;
-    this.installed = false;
     const sizeInBytes = size * 1024 * 1024;
     this.layers = this.generateLayers(sizeInBytes);
   }
@@ -32,13 +33,13 @@ interface MockLayer {
   progress: number; // progress in bytes
 }
 export class MockServer extends OllamaServer implements IModelServer {
-  private isInstalled: boolean = false;
+  private mockStatus = ServerStatus.missing;
   private models: Map<string, MockModel> = new Map([
     ["granite-code:3b", new MockModel("granite-code:3b", 2600)],
     ["granite-code:8b", new MockModel("granite-code:8b", 4000)],
-    ["granite-code:20b", new MockModel("granite-code:20b", 11000, true)],
+    ["granite-code:20b", new MockModel("granite-code:20b", 11000, ModelStatus.installed)],
     ["granite-code:34b", new MockModel("granite-code:34b", 20000)],
-    ["nomic-embed-text:latest", new MockModel("nomic-embed-text:latest", 274)]
+    ["nomic-embed-text:latest", new MockModel("nomic-embed-text:latest", 274, ModelStatus.stale)],
   ]);
 
   /**
@@ -49,18 +50,29 @@ export class MockServer extends OllamaServer implements IModelServer {
    *                will simulate download operations.
    */
   constructor(private speed: number) {
-    super("Mock Server");
+    super({} as ExtensionContext, "Mock Server");
     this.speed *= 1024 * 1024; // Convert speed to bytes per second
   }
   async startServer(): Promise<boolean> {
+    this.mockStatus = ServerStatus.started;
     return true;
   }
-  async isServerInstalled(): Promise<boolean> {
-    return this.isInstalled;
+  async isServerStarted(): Promise<boolean> {
+    return this.mockStatus === ServerStatus.started;
   }
+
+  async isServerInstalled(): Promise<boolean> {
+    return this.mockStatus === ServerStatus.started || this.mockStatus === ServerStatus.stopped;
+  }
+
+  async getStatus(): Promise<ServerStatus> {
+    return this.mockStatus;
+  }
+
   async installServer(mode: string): Promise<boolean> {
     switch (mode) {
       case "mock":
+        this.mockStatus = ServerStatus.installing;
         return new Promise(async (resolve, reject) => {
           await window.withProgress(
             {
@@ -86,8 +98,8 @@ export class MockServer extends OllamaServer implements IModelServer {
                   await new Promise(resolve => setTimeout(resolve, interval));
                   await updateProgress();
                 } else {
-                  this.isInstalled = true;
-                  resolve(this.isInstalled);
+                  this.mockStatus = ServerStatus.started;
+                  resolve(true);
                 }
               };
 
@@ -98,12 +110,12 @@ export class MockServer extends OllamaServer implements IModelServer {
       case "manual":
       default:
         await env.openExternal(Uri.parse("https://ollama.com/download"));
-        this.isInstalled = true;
-        return this.isInstalled;
+        this.mockStatus = ServerStatus.started;
+        return true;
     }
   }
   private getModel(modelName: string): MockModel {
-    const fullModelName = modelName.includes(":") ? modelName : `${modelName}:latest`;
+    const fullModelName = getStandardName(modelName);
     const model = this.models.get(fullModelName);
     if (!model) {
       throw new Error(`Model ${fullModelName} not found`);
@@ -111,13 +123,20 @@ export class MockServer extends OllamaServer implements IModelServer {
     return model;
   }
 
-  async isModelInstalled(modelName: string): Promise<boolean> {
-    return this.getModel(modelName).installed;
+  async getModelStatus(modelName?: string): Promise<ModelStatus> {
+    if (!modelName || !(await this.isServerStarted())) {
+      return ModelStatus.unknown;
+    }
+    // Check if the model is currently being installed
+    if (this.installingModels.has(modelName)) {
+      return ModelStatus.installing;
+    }
+    return this.getModel(modelName).status;
   }
 
   async cancellablePullModel(modelName: string, progressReporter: Progress<ProgressData>, token: any): Promise<void> {
     const model = this.getModel(modelName);
-    if (model.installed) {
+    if (model.status === ModelStatus.installed) {
       return;
     }
 
@@ -140,7 +159,7 @@ export class MockServer extends OllamaServer implements IModelServer {
         await this.simulateStep(model.name, step.name, step.duration, progressReporter);
       }
     }
-    model.installed = true;
+    model.status = ModelStatus.installed;
   }
 
   private async simulateStep(modelName: string, status: string, duration: number, progressReporter: Progress<ProgressData>): Promise<void> {
@@ -199,15 +218,15 @@ export class MockServer extends OllamaServer implements IModelServer {
     });
   }
 
-  async supportedInstallModes(): Promise<{ id: string; label: string; }[]> {
-    return Promise.resolve([{ id: 'mock', label: 'Install Magically' }, { id: 'manual', label: 'Install Manually' }]);
+  async supportedInstallModes(): Promise<{ id: string; label: string; supportsRefresh: boolean }[]> {
+    return Promise.resolve([{ id: 'mock', label: 'Install Magically', supportsRefresh: true }, { id: 'manual', label: 'Install Manually', supportsRefresh: true }]);
   }
 
   async listModels(): Promise<string[]> {
-    if (!this.isInstalled) {
+    if (!this.isServerInstalled()) {
       throw new Error("Server is not installed");
     }
-    return Array.from(this.models.values()).filter(model => model.installed).map(model => model.name);
+    return Array.from(this.models.values()).filter(model => model.status !== ModelStatus.missing).map(model => model.name);
   }
 
   async configureAssistant(

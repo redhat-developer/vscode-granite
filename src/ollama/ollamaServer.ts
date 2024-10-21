@@ -1,39 +1,62 @@
-import * as fs from "fs/promises";
 import os from "os";
-import { CancellationError, env, Progress, ProgressLocation, Uri, window } from "vscode";
+import path from 'path';
+import { CancellationError, env, ExtensionContext, Progress, ProgressLocation, Uri, window } from "vscode";
+import { DEFAULT_MODEL_INFO, ModelInfo } from "../commons/modelInfo";
+import { getStandardName } from "../commons/naming";
 import { ProgressData } from "../commons/progressData";
-import {
-  AiAssistantConfigurationRequest,
-  AiAssistantConfigurator,
-} from "../configureAssistant";
+import { ModelStatus, ServerStatus } from "../commons/statuses";
+import { AiAssistantConfigurationRequest, AiAssistantConfigurator } from "../configureAssistant";
 import { IModelServer } from "../modelServer";
 import { terminalCommandRunner } from "../terminal/terminalCommandRunner";
 import { executeCommand } from "../utils/cpUtils";
+import { getRemoteModelInfo } from "./ollamaLibrary";
 
 const PLATFORM = os.platform();
-const OLLAMA_URL = "http://localhost:11434";
 
 export class OllamaServer implements IModelServer {
 
-  constructor(private name: string = "Ollama") { }
+  private currentStatus = ServerStatus.unknown;
+  protected installingModels = new Set<string>();
+  constructor(private context: ExtensionContext, private name: string = "Ollama", private serverUrl = "http://localhost:11434") { }
 
   getName(): string {
     return this.name;
   }
 
-  async supportedInstallModes(): Promise<{ id: string; label: string }[]> {
+  async supportedInstallModes(): Promise<{ id: string; label: string, supportsRefresh: boolean }[]> {
     const modes = [];
-
+    if (isLinux()) {
+      if (isDevspaces()) {
+        // sudo is not available in devspaces, so we can't use ollama's or manual install script
+        return [{ id: "devspaces", label: "See Red Hat Dev Spaces instructions", supportsRefresh: false }];
+      } else {
+        // on linux
+        modes.push({ id: "script", label: "Install with script", supportsRefresh: true });
+      }
+    }
     if (await isHomebrewAvailable()) {
       // homebrew is available
-      modes.push({ id: "homebrew", label: "Install with Homebrew" });
+      modes.push({ id: "homebrew", label: "Install with Homebrew", supportsRefresh: true });
     }
-    if (await isLinux()) {
-      // on linux
-      modes.push({ id: "script", label: "Install with script" });
-    }
-    modes.push({ id: "manual", label: "Install manually" });
+    modes.push({ id: "manual", label: "Install manually", supportsRefresh: true });
     return modes;
+  }
+
+  async getStatus(): Promise<ServerStatus> {
+    let isStarted = false;
+    try {
+      isStarted = await this.isServerStarted();
+    } catch (e) {
+    }
+    if (isStarted) {
+      this.currentStatus = ServerStatus.started;
+    } else {
+      const ollamaInstalled = await this.isServerInstalled();
+      if (this.currentStatus !== ServerStatus.installing) {
+        this.currentStatus = (ollamaInstalled) ? ServerStatus.stopped : ServerStatus.missing;
+      }
+    }
+    return this.currentStatus;
   }
 
   async isServerInstalled(): Promise<boolean> {
@@ -51,7 +74,7 @@ export class OllamaServer implements IModelServer {
   async isServerStarted(): Promise<boolean> {
     //check if ollama is installed
     try {
-      await this.listModels();
+      await this.getTags();
       console.log("Ollama server is started");
       return true;
     } catch (error) {
@@ -71,61 +94,109 @@ export class OllamaServer implements IModelServer {
   }
 
   async installServer(mode: string): Promise<boolean> {
+    let installCommand: string | undefined;
     switch (mode) {
+      case "devspaces": {
+        env.openExternal(Uri.parse("https://developers.redhat.com/articles/2024/08/12/integrate-private-ai-coding-assistant-ollama"));
+        return false;
+      }
       case "homebrew": {
-        await terminalCommandRunner.runInTerminal(
-          "clear && brew install --cask ollama && sleep 3 && ollama list", //run ollama list to trigger the ollama daemon
-          {
-            name: "Granite Code Setup",
-            show: true,
-          }
-        );
-        return true;
+        this.currentStatus = ServerStatus.installing; //We need to detect the terminal output to know when installation stopped (successfully or not)
+        installCommand = [
+          'clear',
+          'set -e',  // Exit immediately if a command exits with a non-zero status
+          'brew install --cask ollama',
+          'sleep 3',
+          'ollama list',  // run ollama list to start the server
+        ].join(' && ');
+        break;
       }
       case "script":
-        await terminalCommandRunner.runInTerminal(
-          "clear && curl -fsSL https://ollama.com/install.sh | sh",
-          {
-            name: "Granite Code Setup",
-            show: true,
-          }
-        );
-        return true;
+        const start_ollama_sh = path.join(this.context.extensionPath, 'start_ollama.sh');
+        installCommand = [
+          'clear',
+          'set -e',  // Exit immediately if a command exits with a non-zero status
+          'command -v curl >/dev/null 2>&1 || { echo >&2 "curl is required but not installed. Aborting."; exit 1; }',
+          'curl -fsSL https://ollama.com/install.sh | sh',
+          `chmod +x "${start_ollama_sh}"`,  // Ensure the script is executable
+          `"${start_ollama_sh}"`,  // Use quotes in case the path contains spaces
+        ].join(' && ');
+        break;
       case "manual":
       default:
         env.openExternal(Uri.parse("https://ollama.com/download"));
+        return true;
+    }
+    if (installCommand) {
+      this.currentStatus = ServerStatus.installing;
+      await terminalCommandRunner.runInTerminal(
+        installCommand,
+        {
+          name: "Granite Code Setup",
+          show: true,
+        }
+      );
     }
     return true;
   }
 
-  async checkFileExists(filePath: string) {
-    try {
-      await fs.stat(filePath);
-      console.log(`${filePath} exists`);
-      return true;
-    } catch (error: any) {
-      if (error.code === "ENOENT") {
-        // File does not exist
-        console.log(`${filePath} does not exist`);
-        return false;
-      }
-      // Some other error occurred
-      console.error("Error checking file existence:", error);
-      throw error;
+  async getModelStatus(modelName?: string): Promise<ModelStatus> {
+    if (!modelName || this.currentStatus !== ServerStatus.started) {
+      return ModelStatus.unknown;
     }
+    // Check if the model is currently being installed
+    if (this.installingModels.has(modelName)) {
+      return ModelStatus.installing;
+    }
+    let status = ModelStatus.missing;
+    //const start = Date.now();
+    try {
+      const models = await this.getTags();
+      modelName = getStandardName(modelName);
+      const model = models.find((tag: any) => {
+        return (tag.name === modelName);
+      });
+      if (model) {
+        status = ModelStatus.installed;
+        //It's installed, but is it the most recent version?
+        const modelInfo = await getRemoteModelInfo(modelName);
+        if (modelInfo && modelInfo.digest !== model.digest) {
+          // Since the digest differs, we assume a most recent version is available
+          status = ModelStatus.stale;
+        }
+      }
+    } catch (error) {
+      console.log(`Error getting ${modelName} status:`, error);
+      status = ModelStatus.unknown;
+    }
+    //const elapsed = Date.now() - start;
+    //console.log(`Model ${modelName} status check took ${elapsed}ms`);
+    return status;
   }
 
-  async isModelInstalled(modelName: string): Promise<boolean> {
-    const models = await this.listModels();
-    if (!modelName.includes(":")) {
-      modelName = modelName + ":latest";
+  private cachedTags?: { timestamp: number, tags: any[] };
+
+  async getTags(): Promise<any[]> {
+    if (!this.cachedTags || (Date.now() - this.cachedTags.timestamp) > 100) {//cache for 100ms
+      this.cachedTags = {
+        timestamp: Date.now(),
+        tags: await this._getTags(),
+      };
     }
-    return models.includes(modelName);
+    return this.cachedTags.tags;
+  }
+
+  async _getTags(): Promise<any[]> {
+    const json = (
+      await fetch(`${this.serverUrl}/api/tags`)
+    ).json() as any;
+    const rawModels = (await json)?.models || [];
+    return rawModels;
   }
 
   async listModels(): Promise<string[]> {
     const json = (
-      await fetch(`${OLLAMA_URL}/v1/models`)
+      await fetch(`${this.serverUrl}/v1/models`)
     ).json() as any;
     const rawModels = (await json)?.data;
     const models = rawModels ? rawModels.map((model: any) => model.id) : [];
@@ -147,7 +218,7 @@ export class OllamaServer implements IModelServer {
       tabModelName,
       embeddingsModelName,
       provider: "ollama",
-      inferenceEndpoint: OLLAMA_URL,
+      inferenceEndpoint: this.serverUrl,
       contextLength: 32000,
       systemMessage:
         "You are Granite Chat, an AI language model developed by IBM. You are a cautious assistant. You carefully follow instructions. You are helpful and harmless and you follow ethical guidelines and promote positive behavior. You always respond to greetings (for example, hi, hello, g'day, morning, afternoon, evening, night, what's up, nice to meet you, sup, etc) with \"Hello! I am Granite Chat, created by IBM. How can I help you today?\". Please do not say anything else and do not start a conversation.",
@@ -188,6 +259,7 @@ export class OllamaServer implements IModelServer {
         };
 
         try {
+          this.installingModels.add(modelName);
           await this.cancellablePullModel(modelName, progressWrapper, token);
           if (isCancelled) {
             throw new CancellationError();
@@ -197,6 +269,9 @@ export class OllamaServer implements IModelServer {
             throw new CancellationError();
           }
           throw error; // Re-throw other errors
+        } finally {
+          // Remove from installingModels once installation completes (success or error)
+          this.installingModels.delete(modelName);
         }
       }
     );
@@ -204,7 +279,7 @@ export class OllamaServer implements IModelServer {
 
 
   async cancellablePullModel(modelName: string, progress: Progress<ProgressData>, token: any) {
-    const response = await fetch(`${OLLAMA_URL}/api/pull`, {
+    const response = await fetch(`${this.serverUrl}/api/pull`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -214,7 +289,6 @@ export class OllamaServer implements IModelServer {
 
     const reader = response.body?.getReader();
     let currentProgress = 0;
-    let totalSize = 0;
 
     while (true) {
       const { done, value } = await reader?.read() || { done: true, value: undefined };
@@ -225,14 +299,11 @@ export class OllamaServer implements IModelServer {
       const chunk = new TextDecoder().decode(value);
       const lines = chunk.split('\n').filter(Boolean);
 
-
-
       for (const line of lines) {
         const data = JSON.parse(line);
         //console.log(data);
         if (data.total) {
           const completed = data.completed ? data.completed : 0;
-          totalSize = data.total;
           const progressValue = Math.round((completed / data.total) * 100);
           const increment = progressValue - currentProgress;
           currentProgress = progressValue;
@@ -255,6 +326,19 @@ export class OllamaServer implements IModelServer {
       }
     }
   }
+
+  async getModelInfo(modelName: string): Promise<ModelInfo | undefined> {
+    let modelInfo: ModelInfo | undefined;
+    try {
+      modelInfo = await getRemoteModelInfo(modelName);
+    } catch (error) {
+      console.log(`Failed to retrieve remote model info for ${modelName} : ${error}`);
+    }
+    if (!modelInfo) {
+      modelInfo = DEFAULT_MODEL_INFO.get(modelName);
+    }
+    return modelInfo;
+  }
 }
 
 async function isHomebrewAvailable(): Promise<boolean> {
@@ -262,8 +346,12 @@ async function isHomebrewAvailable(): Promise<boolean> {
     //TODO Would that be an issue on WSL2?
     return false;
   }
-  const result = await executeCommand("which", ["brew"]);
-  return "brew not found" !== result;
+  try {
+    const result = await executeCommand("which", ["brew"]);
+    return "brew not found" !== result;
+  } catch (e) {
+    return false;
+  }
 }
 
 function isLinux(): boolean {
@@ -273,3 +361,8 @@ function isLinux(): boolean {
 function isWin(): boolean {
   return PLATFORM.startsWith("win");
 }
+function isDevspaces() {
+  //sudo is not available on Red Hat DevSpaces
+  return process.env['DEVWORKSPACE_ID'] !== undefined;
+}
+
