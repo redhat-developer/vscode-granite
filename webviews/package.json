@@ -38,8 +38,8 @@
       "^.+\\.tsx?$": "ts-jest"
     },
     "moduleFileExtensions": [
-      "ts",
       "tsx",
+      "ts",
       "js",
       "jsx",
       "json",

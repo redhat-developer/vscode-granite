@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import ModelList, { ModelOption } from "./ModelList";
 import { ProgressData } from "../../src/commons/progressData";
 import { StatusCheck } from "./StatusCheck";
+import React from 'react';
 
 
 function App() {

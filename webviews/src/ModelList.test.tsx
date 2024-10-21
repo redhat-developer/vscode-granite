@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import ModelList, { ModelOption } from './ModelList';
 import '@testing-library/jest-dom';
+import React from 'react';
 
 describe('ModelList Component', () => {
   const modelOptions: ModelOption[] = [

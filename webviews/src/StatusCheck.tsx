@@ -1,4 +1,5 @@
 import { VscCircleLarge, VscPassFilled } from "react-icons/vsc";
+import React from "react";
 
 export interface StatusCheckProps {
   checked: boolean

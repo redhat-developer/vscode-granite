@@ -1,6 +1,13 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import App from './App';
+import React from 'react';
+
+import * as vscode from 'vscode';
+
+jest.mock('vscode', () => ({
+    postMessage: jest.fn(), // Mock the postMessage function
+}));
 
 describe('App Component', () => {
   it('renders the main title', () => {

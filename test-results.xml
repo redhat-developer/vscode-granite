@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="1" failures="1" errors="0" time="2.078">
+  <testsuite name="ProgressBar Component" errors="0" failures="1" skipped="0" timestamp="2024-10-21T13:29:13" time="1.212" tests="1">
+    <testcase classname="ProgressBar Component displays the correct progress information" name="ProgressBar Component displays the correct progress information" time="0.021">
+      <failure>TestingLibraryElementError: Unable to find an element with the text: /500.00 MB \/ 1.00 GB/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+&lt;body&gt;
+  &lt;div&gt;
+    &lt;div
+      style=&quot;margin: 5px;&quot;
+    &gt;
+      &lt;label
+        class=&quot;progress-status&quot;
+      &gt;
+        &lt;div
+          style=&quot;font-size: 12px; margin-left: auto;&quot;
+        &gt;
+          est. time: ~Universe heat death
+        &lt;/div&gt;
+      &lt;/label&gt;
+      &lt;div
+        style=&quot;display: flex; align-items: flex-start; margin-bottom: 10px; margin-top: 5px;&quot;
+      &gt;
+        &lt;div
+          style=&quot;flex: 0 0 100%; margin-right: 10px;&quot;
+        &gt;
+          &lt;div
+            style=&quot;height: 8px; background-color: rgb(224, 224, 223); border-radius: 5px;&quot;
+          &gt;
+            &lt;div
+              class=&quot;progress-bar&quot;
+              style=&quot;width: 0%; height: 100%; border-radius: 5px;&quot;
+            /&gt;
+          &lt;/div&gt;
+          &lt;div
+            style=&quot;text-align: right; font-size: 10px; margin: 5px 0px;&quot;
+          &gt;
+                      
+             / 
+                      
+             at 
+               0.00
+             MB/s
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/body&gt;
+    at Object.getElementError (/Users/venkataneeharkurukunda/Desktop/issue-47/vscode-granite/webviews/node_modules/@testing-library/dom/dist/config.js:37:19)
+    at /Users/venkataneeharkurukunda/Desktop/issue-47/vscode-granite/webviews/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+    at /Users/venkataneeharkurukunda/Desktop/issue-47/vscode-granite/webviews/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+    at /Users/venkataneeharkurukunda/Desktop/issue-47/vscode-granite/webviews/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+    at Object.&lt;anonymous&gt; (/Users/venkataneeharkurukunda/Desktop/issue-47/vscode-granite/webviews/src/ProgressBar.test.tsx:18:19)
+    at Promise.then.completed (/Users/venkataneeharkurukunda/Desktop/issue-47/vscode-granite/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/Users/venkataneeharkurukunda/Desktop/issue-47/vscode-granite/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/Users/venkataneeharkurukunda/Desktop/issue-47/vscode-granite/node_modules/jest-circus/build/run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at _runTest (/Users/venkataneeharkurukunda/Desktop/issue-47/vscode-granite/node_modules/jest-circus/build/run.js:252:3)
+    at _runTestsForDescribeBlock (/Users/venkataneeharkurukunda/Desktop/issue-47/vscode-granite/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/Users/venkataneeharkurukunda/Desktop/issue-47/vscode-granite/node_modules/jest-circus/build/run.js:121:9)
+    at run (/Users/venkataneeharkurukunda/Desktop/issue-47/vscode-granite/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/Users/venkataneeharkurukunda/Desktop/issue-47/vscode-granite/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/Users/venkataneeharkurukunda/Desktop/issue-47/vscode-granite/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/Users/venkataneeharkurukunda/Desktop/issue-47/vscode-granite/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/Users/venkataneeharkurukunda/Desktop/issue-47/vscode-granite/node_modules/jest-runner/build/runTest.js:444:34)
+    at Object.worker (/Users/venkataneeharkurukunda/Desktop/issue-47/vscode-granite/node_modules/jest-runner/build/testWorker.js:106:12)</failure>
+    </testcase>
+  </testsuite>
+</testsuites>
