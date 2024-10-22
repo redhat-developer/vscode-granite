@@ -3,7 +3,7 @@ import { ModelInfo } from '../commons/modelInfo';
 
 const cache = new Map<string, ModelInfo | undefined>();//TODO limit caching lifespan
 
-const INFO_DELIMITER = ' . ';
+const INFO_DELIMITER = ' · ';
 
 // This is fugly, extremely brittle, but we have no other choice because The ollama library doesn't seem to expose an API we can query.
 export async function getRemoteModelInfo(modelId: string): Promise<ModelInfo | undefined> {
@@ -52,13 +52,4 @@ export async function getRemoteModelInfo(modelId: string): Promise<ModelInfo | u
   // Cache the failure
   cache.set(modelId, undefined);
   return undefined;
-}
-
-export async function ollamaLibraryWarmup(models: string[]): Promise<void> {
-  const start = Date.now();
-  await Promise.all(models.map(async (id) => {
-    await getRemoteModelInfo(id);
-  }));
-  const elapsed = Date.now() - start;
-  console.log(`Warmed up ${models.length} model info in ${elapsed} ms`);
 }
