@@ -6,6 +6,7 @@ import { ProgressData } from "../../src/commons/progressData";
 import { getStandardName } from "../../src/commons/naming";
 import { ModelStatus, ServerStatus } from "../../src/commons/statuses";
 import { StatusCheck, StatusValue } from "./StatusCheck";
+import { FaCircleExclamation, FaTriangleExclamation } from "react-icons/fa6";
 
 
 function App() {
@@ -199,6 +200,13 @@ function App() {
           Granite will help you write, generate, explain or document code, while your data stays secure and private on your own machine.</p>
       </div>
       <div className="form-group-wrapper">
+       <div className="user-info-wrap">
+          <FaTriangleExclamation className="exclamation mr-1" />
+          <p className="m-0 mb-1">
+            Upon launching Continue.dev, a welcome screen will be displayed.
+            Make sure to close it before setting up IBM Granite Code Models.
+          </p>
+        </div>
         <div className="form-group">
           <div className="ollama-status-wrapper">
             <label>
@@ -264,6 +272,18 @@ function App() {
         <div className="final-setup-group">
           <button className="install-button" onClick={handleSetupGraniteClick} disabled={serverStatus !== ServerStatus.started || !enabled || isKeepExistingConfigSelected}>Setup Granite Code</button>
         </div >
+        {chatModel ? (
+          <div className="user-info-wrap bottom mt-1">
+            <FaCircleExclamation className="exclamation mr-1" />
+            <p className="m-0 mb-1">
+              Once IBM Granite Code has been set up, choose the
+              <strong> {chatModel}</strong> chat model from the Continue's chat
+              dropdown.
+            </p>
+          </div>
+        ) : (
+          <></>
+        )}
       </div >
     </main >
   );

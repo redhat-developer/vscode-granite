@@ -177,6 +177,18 @@ button:disabled {
   margin-bottom: 0.5rem !important;
 }
 
+.mt-1 {
+  margin-top: 0.5rem !important;
+}
+
+.ml-1 {
+  margin-left: 0.5rem !important;
+}
+
+.mr-1 {
+  margin-right: 0.5rem !important;
+}
+
 .main-description {
   width: 500px;
   font-size: 0.8rem;
@@ -196,9 +208,35 @@ button:disabled {
   color: var(--vscode-terminal-background);
 }
 
+.user-info-wrap {
+  display: inline-flex;
+  width: 100%;
+  justify-self: flex-start;
+  padding: 6px 8px;
+  border-radius: 5px;
+  margin-bottom: 5px;
+}
+
+.user-info-wrap.bottom {
+  width: calc(100% - 30px);
+  border: 1px solid var(--vscode-charts-orange);
+  margin: 5px 15px;
+}
+
+.user-info-wrap .exclamation {
+  font-size: 0.7rem;
+  min-width: 13px;
+  height: 13px;
+  margin-top: 0.1rem;
+  color: var(--vscode-charts-orange);
+}
+
+.user-info-wrap>p {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
 
 @media (max-width: 767px) {
-
   .main-description,
   .main-wrapper .form-group-wrapper {
     width: calc(100% - 50px);
