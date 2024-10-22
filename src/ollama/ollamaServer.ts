@@ -17,6 +17,8 @@ export class OllamaServer implements IModelServer {
 
   private currentStatus = ServerStatus.unknown;
   protected installingModels = new Set<string>();
+  private modelInfoPromises: Map<string, Promise<ModelInfo | undefined>> = new Map();
+  private modelInfoResults: Map<string, ModelInfo | undefined> = new Map();
   constructor(private context: ExtensionContext, private name: string = "Ollama", private serverUrl = "http://localhost:11434") { }
 
   getName(): string {
@@ -148,20 +150,24 @@ export class OllamaServer implements IModelServer {
     if (this.installingModels.has(modelName)) {
       return ModelStatus.installing;
     }
+
     let status = ModelStatus.missing;
-    //const start = Date.now();
     try {
       const models = await this.getTags();
       modelName = getStandardName(modelName);
-      const model = models.find((tag: any) => {
-        return (tag.name === modelName);
-      });
+      const model = models.find((tag: any) => tag.name === modelName);
       if (model) {
         status = ModelStatus.installed;
+        // Query the model info - once - from the remote server, in the background, to avoid blocking the UI.
+        // modelInfoResults will be updated with the most recent info once it's available
+        if (!this.modelInfoPromises.has(modelName)) {
+          this.modelInfoPromises.set(modelName, this.fetchModelInfo(modelName));
+        }
         //It's installed, but is it the most recent version?
-        const modelInfo = await getRemoteModelInfo(modelName);
-        if (modelInfo && modelInfo.digest !== model.digest) {
-          // Since the digest differs, we assume a most recent version is available
+        const cachedInfo = this.modelInfoResults.get(modelName);
+        //cachedInfo.digest should be a substring of model.digest if the model is not stale
+        if (cachedInfo && !model.digest.startsWith(cachedInfo.digest)) {
+          // Since the digests differ, we assume a more recent version is available
           status = ModelStatus.stale;
         }
       }
@@ -169,8 +175,6 @@ export class OllamaServer implements IModelServer {
       console.log(`Error getting ${modelName} status:`, error);
       status = ModelStatus.unknown;
     }
-    //const elapsed = Date.now() - start;
-    //console.log(`Model ${modelName} status check took ${elapsed}ms`);
     return status;
   }
 
@@ -326,12 +330,20 @@ export class OllamaServer implements IModelServer {
     try {
       modelInfo = await getRemoteModelInfo(modelName);
     } catch (error) {
-      console.log(`Failed to retrieve remote model info for ${modelName} : ${error}`);
+      console.log(`Failed to retrieve remote model info for ${modelName}: ${error}`);
     }
-    if (!modelInfo) {
-      modelInfo = DEFAULT_MODEL_INFO.get(modelName);
+    return modelInfo || DEFAULT_MODEL_INFO.get(modelName);
+  }
+
+  private async fetchModelInfo(modelName: string): Promise<ModelInfo | undefined> {
+    try {
+      const modelInfo = await getRemoteModelInfo(modelName);
+      this.modelInfoResults.set(modelName, modelInfo);
+      return modelInfo;
+    } catch (error) {
+      console.log(`Failed to retrieve remote model info for ${modelName}:`, error);
+      return undefined;
     }
-    return modelInfo;
   }
 }
 
@@ -359,5 +371,3 @@ function isDevspaces() {
   //sudo is not available on Red Hat DevSpaces
   return process.env['DEVWORKSPACE_ID'] !== undefined;
 }
-
-
