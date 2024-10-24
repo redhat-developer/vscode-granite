@@ -53,11 +53,14 @@ jobs:
           name: vscode-granite-vsix-${{ runner.os }}-${{ github.run_id }}  # Unique name with OS and run ID
           path: "./vscode-granite-*.vsix"
 
-      # Run tests
-      - name: Run Test
-        uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3 #v1.0.1
-        with:
-          run: npm test
+      ## Run tests
+      - name: Run Tests
+        run: |
+          if [ "${{ runner.os }}" == "Linux" ]; then
+            xvfb-run npm test
+          else
+            npm test
+          fi
 
       # Update latest release (only on Linux and for main branch)
       - name: Update latest release
