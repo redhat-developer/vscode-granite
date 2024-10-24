@@ -1,6 +1,7 @@
 # This is a basic workflow
 name: CI
 
+# Triggers the workflow on all pushes or pull requests on the main branch
 on:
   push:
     branches: 
@@ -9,58 +10,59 @@ on:
     branches: 
       - '**'
 
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  # This workflow contains a single job called "build"
   build:
+    # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest] #FIXME windows-latest fails to run tests
 
     steps:
+      # Checkout code
       - uses: actions/checkout@v4
 
+      # Set up Node
       - name: Use Node 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
+      # Run install dependencies
       - name: Install dependencies
         run: npm run install:ci
 
+      # Build extension
       - name: Run build
         run: npm run package
 
+      # Generate .vsix package for the extension 
       - name: Generate .vsix package
         if: runner.os == 'Linux'  
         run: |
           npm install -g @vscode/vsce
           vsce package
 
+      # Upload VSIX artifact 
       - name: Upload VSIX artifact
         if: runner.os == 'Linux'  
         uses: actions/upload-artifact@v4
         with:
-          name: vscode-granite-vsix-${{ runner.os }}-${{ github.run_id }}
+          name: vscode-granite-vsix-${{ runner.os }}-${{ github.run_id }}  # Unique name with OS and run ID
           path: "./vscode-granite-*.vsix"
 
-      - name: Run Test on Ubuntu
-        if: runner.os == 'Linux'
+      ## Run tests
+      - name: Run Tests
         run: |
-          # Install Xvfb
-          sudo apt-get update
-          sudo apt-get install -y xvfb
-          # Start Xvfb
-          Xvfb :99 -screen 0 1920x1080x24 &
-          export DISPLAY=:99
-          # Run your tests
-          npm test
+          if [ "${{ runner.os }}" == "Linux" ]; then
+            xvfb-run npm test
+          else
+            npm test
+          fi
 
-      - name: Run Test on macOS
-        if: runner.os == 'macOS'
-        run: |
-          # Run your tests directly (as Xvfb is not typically used on macOS)
-          npm test
-
+      # Update latest release (only on Linux and for main branch)
       - name: Update latest release
         if: runner.os == 'Linux' && github.ref == 'refs/heads/main'
         uses: marvinpinto/action-automatic-releases@latest
