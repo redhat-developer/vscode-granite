@@ -175,12 +175,14 @@ export class SetupGranitePage {
    * rendered within the webview panel
    */
   private _getWebviewContent(webview: Webview, extensionUri: Uri) {
+    // The CSS file from the React build output
     const stylesUri = getUri(webview, extensionUri, [
       "webviews",
       "build",
       "assets",
       "index.css",
     ]);
+    // The JS file from the React build output
     const scriptUri = getUri(webview, extensionUri, [
       "webviews",
       "build",
@@ -190,34 +192,20 @@ export class SetupGranitePage {
 
     const nonce = getNonce();
 
+    // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
     return /*html*/ `
       <!DOCTYPE html>
       <html lang="en">
         <head>
           <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
           <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; connect-src http://localhost">
           <link rel="stylesheet" type="text/css" href="${stylesUri}">
           <title>Granite Code</title>
         </head>
         <body>
           <div id="root"></div>
-  
-          <!-- Updated Description Block -->
-          <div style="
-            width: 500px;                     /* Adjusted width to match the description block */
-            background-color: #1e1e1e;        /* Dark background color to match the theme */
-            padding: 16px;                    /* Adjusted padding */
-            border-radius: 8px;               /* Rounded corners */
-            color: #c9c9c9;                   /* Light gray text color */
-            font-size: 0.9em;                 /* Font size for readability */
-            margin: 20px auto;                /* Centered horizontally */
-            box-shadow: none;                 /* Optional: Remove shadow if not needed */
-          ">
-            To reopen this wizard, open the command palette and run <br>
-            <strong>"Granite: Setup Granite Code as code assistant"</strong>.
-          </div>
-  
           <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
         </body>
       </html>
@@ -225,12 +213,12 @@ export class SetupGranitePage {
   }
 
   /**
-     * Sets up an event listener to listen for messages passed from the webview context and
-     * executes code based on the message that is recieved.
-     *
-     * @param webview A reference to the extension webview
-     * @param context A reference to the extension context
-     */
+   * Sets up an event listener to listen for messages passed from the webview context and
+   * executes code based on the message that is recieved.
+   *
+   * @param webview A reference to the extension webview
+   * @param context A reference to the extension context
+   */
   private debounceStatus = 0;
 
   private _setWebviewMessageListener(webview: Webview) {
@@ -402,4 +390,3 @@ export class SetupGranitePage {
   }
 
 }
-
