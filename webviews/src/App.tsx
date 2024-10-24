@@ -3,6 +3,7 @@ import "./App.css";
 import { useCallback, useEffect, useState } from "react";
 import ModelList, { ModelOption } from "./ModelList";
 import { ProgressData } from "../../src/commons/progressData";
+import React from 'react';
 import { getStandardName } from "../../src/commons/naming";
 import { ModelStatus, ServerStatus } from "../../src/commons/statuses";
 import { StatusCheck, StatusValue } from "./StatusCheck";
