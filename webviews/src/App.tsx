@@ -6,6 +6,7 @@ import { ProgressData } from "../../src/commons/progressData";
 import { getStandardName } from "../../src/commons/naming";
 import { ModelStatus, ServerStatus } from "../../src/commons/statuses";
 import { StatusCheck, StatusValue } from "./StatusCheck";
+import React from 'react';
 
 
 function App() {
