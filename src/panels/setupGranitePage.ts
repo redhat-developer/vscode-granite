@@ -390,4 +390,3 @@ export class SetupGranitePage {
   }
 
 }
-
