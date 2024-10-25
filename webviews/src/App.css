@@ -1,5 +1,11 @@
 /* See https://github.com/microsoft/vscode/blob/cf4bc01bfb3fc9826670e46cb88cca107ee064fc/build/lib/stylelint/vscode-known-variables.json#L771
 for variable reference */
+:root {
+  --bottom-6p: 6%;
+  --bottom-10p: 10%;
+  --bottom-20p: 20%;
+}
+
 main {
   display: flex;
   flex-direction: column;
@@ -209,21 +215,71 @@ button:disabled {
 }
 
 .user-info-wrap {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
   width: 100%;
-  justify-self: flex-start;
-  padding: 6px 8px;
-  border-radius: 5px;
-  margin-bottom: 5px;
 }
 
-.user-info-wrap.bottom {
+.user-info-card {
+  display: inline-flex;
+  max-width: 435px;
+  justify-self: flex-start;
+  padding: 16px 12px 8px;
+  margin-bottom: 5px;
+  border-radius: 4px;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  background-color: var(--vscode-statusBar-background);
+  position: absolute;
+  right: -5px;
+  z-index: 9;
+}
+
+@keyframes slideRight {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0%);
+  }
+}
+
+.slide-right {
+  opacity: 1;
+  transform: translateX(0);
+  animation: slideRight 0.3s ease-in-out;
+}
+
+.hidden {
+  display: none;
+  opacity: 0;
+}
+
+/* style for user information card popup */
+.user-info-wrap .user-info-card:nth-child(odd) {
+  bottom: var(--bottom-6p);
+}
+
+.user-info-wrap .user-info-card:nth-child(even) {
+  bottom: calc(var(--bottom-10p) + 38px);
+}
+
+.user-info-wrap .user-info-card:nth-child(3n) {
+  bottom: calc(var(--bottom-20p));
+}
+
+.user-info-card.bottom {
   width: calc(100% - 30px);
-  border: 1px solid var(--vscode-charts-orange);
+  border: 1px solid var(--vscode-titleBar-border);
+  box-shadow: 0px 0px 5px 0px var(--vscode-widget-shadow);
   margin: 5px 15px;
 }
 
-.user-info-wrap .exclamation {
+.user-info-card .exclamation {
   font-size: 0.7rem;
   min-width: 13px;
   height: 13px;
@@ -231,12 +287,28 @@ button:disabled {
   color: var(--vscode-charts-orange);
 }
 
-.user-info-wrap>p {
+.user-info-card>p {
   font-size: 0.75rem;
   line-height: 1rem;
 }
 
+.close-icon {
+  cursor: pointer;
+  width: 14px;
+  min-width: 14px;
+  height: 14px;
+  position: absolute;
+  right: 3px;
+  top: 3px;
+  opacity: 0.5;
+}
+
+.close-icon:hover {
+  opacity: 0.8;
+}
+
 @media (max-width: 767px) {
+
   .main-description,
   .main-wrapper .form-group-wrapper {
     width: calc(100% - 50px);
@@ -247,5 +319,22 @@ button:disabled {
   .main-wrapper .form-group-wrapper .model-list--outer-wrapper {
     flex-wrap: wrap;
     gap: 8px 16px;
+  }
+
+  .user-info-card {
+    max-width: calc(100% - 120px);
+  }
+
+  /* Add these new styles */
+  .user-info-wrap .user-info-card:nth-child(odd) {
+    bottom: var(--bottom-6p);
+  }
+
+  .user-info-wrap .user-info-card:nth-child(even) {
+    bottom: calc(var(--bottom-10p) + 58px);
+  }
+
+  .user-info-wrap .user-info-card:nth-child(3n) {
+    bottom: calc(var(--bottom-20p) + 58px);
   }
 }

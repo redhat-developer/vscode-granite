@@ -6,7 +6,7 @@ import { ProgressData } from "../../src/commons/progressData";
 import { getStandardName } from "../../src/commons/naming";
 import { ModelStatus, ServerStatus } from "../../src/commons/statuses";
 import { StatusCheck, StatusValue } from "./StatusCheck";
-import { FaCircleExclamation, FaTriangleExclamation } from "react-icons/fa6";
+import { FaTriangleExclamation, FaXmark } from "react-icons/fa6";
 
 
 function App() {
@@ -44,6 +44,8 @@ function App() {
   const [enabled, setEnabled] = useState<boolean>(true);
 
   const [isKeepExistingConfigSelected, setIsKeepExistingConfigSelected] = useState(false);
+  const [showWarningMessage, setShowWarningMessage] = useState(false);
+  const [isShowWarningMessage, setIsShowWarningMessage] = useState(true);
 
   const getModelStatus = useCallback((model: string | null): ModelStatus | null => {
     if (model === null) {
@@ -192,6 +194,42 @@ function App() {
     setIsKeepExistingConfigSelected(checkKeepExistingConfig);
   }, [chatModel, tabModel, embeddingsModel]);
 
+  // For closing User Information Popup using close Icon
+  function handleCloseWarningMessage(event: any) {
+    event.stopPropagation();
+    const clickedCard = event.target.closest('.user-info-card');
+    if (clickedCard) {
+      clickedCard.classList.add('hidden');
+    }
+  }
+
+  useEffect(() => {
+  // Check if selected chat model is installed
+  const isChatModelInstalled = getModelStatus(chatModel) === ModelStatus.installed;
+  // Check selected chat model is installing
+  const isChatModelInstalling = getModelStatus(chatModel) === ModelStatus.installing;
+  // Check if all models have completed their progress
+  const allCompleted = Object.keys(modelPullProgress).every((modelName) => modelPullProgress[modelName]?.completed || false);
+  // Checks if all models are installed
+  const isAllInstalled = modelStatuses.size > 0 && Array.from(modelStatuses.values()).every(status => status === ModelStatus.installed);
+
+  // Switch case based on modelStatus and progress
+  switch (true) {
+    case !isChatModelInstalled:
+      setShowWarningMessage(false);
+      break;
+    case isAllInstalled:
+      setShowWarningMessage(false);
+      break;
+    case isChatModelInstalling:
+      setShowWarningMessage(true);
+      break;
+    default:
+      setShowWarningMessage(true);
+      break;
+  }
+}, [modelPullProgress, modelStatuses, chatModel]);
+
   return (
     <main className="main-wrapper">
       <h1 className="main-title">Setup IBM Granite Code as your code assistant with Continue</h1>
@@ -200,13 +238,6 @@ function App() {
           Granite will help you write, generate, explain or document code, while your data stays secure and private on your own machine.</p>
       </div>
       <div className="form-group-wrapper">
-       <div className="user-info-wrap">
-          <FaTriangleExclamation className="exclamation mr-1" />
-          <p className="m-0 mb-1">
-            Upon launching Continue.dev, a welcome screen will be displayed.
-            Make sure to close it before setting up IBM Granite Code Models.
-          </p>
-        </div>
         <div className="form-group">
           <div className="ollama-status-wrapper">
             <label>
@@ -272,19 +303,36 @@ function App() {
         <div className="final-setup-group">
           <button className="install-button" onClick={handleSetupGraniteClick} disabled={serverStatus !== ServerStatus.started || !enabled || isKeepExistingConfigSelected}>Setup Granite Code</button>
         </div >
-        {chatModel ? (
-          <div className="user-info-wrap bottom mt-1">
-            <FaCircleExclamation className="exclamation mr-1" />
-            <p className="m-0 mb-1">
-              Once IBM Granite Code has been set up, choose the
-              <strong> {chatModel}</strong> chat model from the Continue's chat
-              dropdown.
-            </p>
-          </div>
-        ) : (
-          <></>
-        )}
       </div >
+      
+      {/* User Information Popup to select IBM Granite Code Models  */}
+      {showWarningMessage ? (
+        <>
+          <div className="user-info-wrap">
+            <div className={`user-info-card bottom mt-1 ${isShowWarningMessage ? 'slide-right' : ''}`}>
+              <FaTriangleExclamation className="exclamation mr-1" />
+              <p className="m-0 mb-1">
+                Once IBM Granite Code has been set up, choose the
+                <strong> {chatModel}</strong> chat model from the Continue's chat model
+                dropdown.
+              </p>
+              <FaXmark className="close-icon ml-1" onClick={(event) => handleCloseWarningMessage(event)} />
+            </div>
+
+            <div className={`user-info-card bottom mt-1 ${isShowWarningMessage ? 'slide-right' : ''}`}>
+              <FaTriangleExclamation className="exclamation mr-1" />
+              <p className="m-0 mb-1">
+                Upon launching Continue.dev, a welcome screen will be displayed.
+                Make sure to close it before setting up IBM Granite Code Models.
+              </p>
+              <FaXmark className="close-icon ml-1" onClick={(event) => handleCloseWarningMessage(event)} />
+            </div>
+
+          </div>
+        </>
+      ) : (
+        <></>
+      )}
     </main >
   );
 }
