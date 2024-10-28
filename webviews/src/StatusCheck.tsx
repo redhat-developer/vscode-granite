@@ -1,5 +1,4 @@
 import { VscArrowCircleDown, VscCircleLarge, VscCircleLargeFilled, VscPass, VscPassFilled } from "react-icons/vsc";
-import React from 'react';
 
 export type StatusValue = 'complete' | 'installing' | 'partial' | 'missing';
 
