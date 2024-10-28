@@ -1,7 +1,6 @@
-# This is a basic workflow
+# Combined CI workflow for Windows, macOS, and Linux
 name: CI
-
-# Triggers the workflow on all pushes or pull requests on the main branch
+# Triggers the workflow on all pushes or pull requests on any branch
 on:
   push:
     branches: 
@@ -9,16 +8,15 @@ on:
   pull_request:
     branches: 
       - '**'
-
+     
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest] #FIXME windows-latest fails to run tests
+        os: [macos-latest, ubuntu-latest,windows-latest]  # Define the operating systems for the matrix
 
     steps:
       # Checkout code
@@ -40,14 +38,14 @@ jobs:
 
       # Generate .vsix package for the extension 
       - name: Generate .vsix package
-        if: runner.os == 'Linux'  
+        if: runner.os == 'Linux'
         run: |
           npm install -g @vscode/vsce
           vsce package
 
-      # Upload VSIX artifact 
+      # Upload VSIX artifact
       - name: Upload VSIX artifact
-        if: runner.os == 'Linux'  
+        if: runner.os == 'Linux' 
         uses: actions/upload-artifact@v4
         with:
           name: vscode-granite-vsix-${{ runner.os }}-${{ github.run_id }}  # Unique name with OS and run ID
@@ -55,8 +53,9 @@ jobs:
 
       ## Run tests
       - name: Run Tests
+        shell: bash
         run: |
-          if [ "${{ runner.os }}" == "Linux" ]; then
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
             xvfb-run npm test
           else
             npm test
@@ -64,14 +63,13 @@ jobs:
 
       # Run unit tests for react components
       - name: Run Tests
-        run: cd webviews && npm run test:jest
+        run: npm run test:jest
 
-      # Update latest release (only on Linux and for main branch)
       - name: Update latest release
         if: runner.os == 'Linux' && github.ref == 'refs/heads/main'
         uses: marvinpinto/action-automatic-releases@latest
         with:
-          repo_token: "${{secrets.GITHUB_TOKEN}}"
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
           prerelease: true
           title: "Development Build"
