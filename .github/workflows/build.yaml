@@ -64,7 +64,7 @@ jobs:
 
       # Run unit tests for react components
       - name: Run Tests
-        run: npm run test:jest
+        run: cd webviews && npm run test:jest
 
       # Update latest release (only on Linux and for main branch)
       - name: Update latest release
