@@ -7,7 +7,6 @@ import { getStandardName } from "../../src/commons/naming";
 import { ModelStatus, ServerStatus } from "../../src/commons/statuses";
 import { StatusCheck, StatusValue } from "./StatusCheck";
 
-
 function App() {
   const modelOptions: ModelOption[] = [
     { label: 'granite-code:3b', value: 'granite-code:3b', info: '2.0 GB' },
@@ -16,7 +15,7 @@ function App() {
     { label: 'granite-code:34b', value: 'granite-code:34b', info: '19 GB' },
     { label: 'Keep existing configuration', value: null, info: null }
   ];
-  
+
   const tabOptions: ModelOption[] = [
     { label: 'granite-code:3b', value: 'granite-code:3b', info: '2.0 GB' },
     { label: 'granite-code:8b', value: 'granite-code:8b', info: '4.6 GB' },
@@ -83,6 +82,7 @@ function App() {
       }
     });
   }
+
   const REFETCH_MODELS_INTERVAL_MS = 1500;
   let ollamaStatusChecker: NodeJS.Timeout | undefined;
 
@@ -194,10 +194,16 @@ function App() {
   return (
     <main className="main-wrapper">
       <h1 className="main-title">Setup IBM Granite Code as your code assistant with Continue</h1>
+
       <div className="main-description">
-        <p className="m-0 mb-1">Run <a href="https://github.com/ibm-granite/granite-code-models" target="_blank" rel="noopener noreferrer">IBM Granite Code</a> models effortlessly with <a href="https://github.com/ollama/ollama" target="_blank" rel="noopener noreferrer"> Ollama</a> and <a href="https://github.com/continuedev/continue" target="_blank" rel="noopener noreferrer">Continue.dev</a>.
-          Granite will help you write, generate, explain or document code, while your data stays secure and private on your own machine.</p>
+        <p className="m-0 mb-1">
+          Run <a href="https://github.com/ibm-granite/granite-code-models" target="_blank" rel="noopener noreferrer">IBM Granite Code</a> models effortlessly with
+          <a href="https://github.com/ollama/ollama" target="_blank" rel="noopener noreferrer"> Ollama</a> and
+          <a href="https://github.com/continuedev/continue" target="_blank" rel="noopener noreferrer">Continue.dev</a>.
+          Granite will help you write, generate, explain or document code, while your data stays secure and private on your own machine.
+        </p>
       </div>
+
       <div className="form-group-wrapper">
         <div className="form-group">
           <div className="ollama-status-wrapper">
@@ -262,10 +268,19 @@ function App() {
         />
 
         <div className="final-setup-group">
-          <button className="install-button" onClick={handleSetupGraniteClick} disabled={serverStatus !== ServerStatus.started || !enabled || isKeepExistingConfigSelected}>Setup Granite Code</button>
-        </div >
-      </div >
-    </main >
+          <button className="install-button" onClick={handleSetupGraniteClick} disabled={serverStatus !== ServerStatus.started || !enabled || isKeepExistingConfigSelected}>
+            Setup Granite Code
+          </button>
+        </div>
+      </div>
+
+      <div className="info-message">
+        <p>
+          To reopen this wizard, open the command palette and run:
+          <p style={{ margin: 2, paddingLeft: 10 }}><strong>Granite: Setup Granite Code as code assistant</strong></p>.
+        </p>
+      </div>
+    </main>
   );
 }
 
