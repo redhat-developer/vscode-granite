@@ -103,8 +103,23 @@ export class AiAssistantConfigurator {
     this.apiBase = DEFAULT_API_BASE;
   }
 
+  private async shouldShowContinueOnboarding(configFile: string): Promise<boolean> {
+    const config = await readConfig(configFile);
+    if (!config || !config.models) {
+      return false;
+    }
+    return config.models.length === 1 &&
+      config.models[0].provider === "anthropic" &&
+      config.models[0].apiKey === "";
+  }
+
   public async openWizard() {
     if (isContinueInstalled()) {
+      vscode.window.showInformationMessage(
+        `Upon launching Continue.dev, a welcome screen will be displayed.
+          Make sure to close it before setting up IBM Granite Code Models.`,
+        ``
+      );
       await this.configureAssistant();
     } else {
       return; //await recommendContinue();
@@ -159,8 +174,10 @@ export class AiAssistantConfigurator {
 
     if (updateConfig) {
       await writeConfig(configFile, config);
+      const currentChatModel = this.request.chatModel ?? null;
       vscode.window.showInformationMessage(
-        `Continue configuration completed.`
+        `Continue configuration completed. Now select the ${currentChatModel} from Continue's chat model dropdown.`,
+        ``
       );
     }
   }
@@ -177,7 +194,9 @@ function isContinueInstalled(): boolean {
   return continueExt !== undefined;
 }
 
-async function readConfig(configFile: string): Promise<any> {
+export const configFilePath = path.join(os.homedir(), ".continue/config.json");
+
+export async function readConfig(configFile: string): Promise<any> {
   try {
     await fs.access(configFile, fs.constants.R_OK);
   } catch (error) {
