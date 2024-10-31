@@ -61,6 +61,10 @@ jobs:
             npm test
           fi
 
+      # Run unit tests for react components
+      - name: Run Webview Tests
+        run: npm run test:jest
+
       # Update latest release (only on Linux and for the main branch)
       - name: Update latest release
         if: runner.os == 'Linux' && github.ref == 'refs/heads/main'
