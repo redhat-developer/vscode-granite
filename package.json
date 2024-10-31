@@ -62,8 +62,7 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint src --ext ts",
     "test": "vscode-test",
-    "test:jest": "cd webviews && npm run test",
-    "test:ci": "cd webviews && jest --ci --reporters=default --reporters=jest-junit"
+    "test:jest": "cd webviews && npm run test"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.9",

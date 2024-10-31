@@ -34,6 +34,9 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": [
+      "./jest.setup.ts"
+    ],
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },
