@@ -62,7 +62,7 @@ jobs:
           fi
 
       # Run unit tests for react components
-      - name: Run Tests
+      - name: Run Webview Tests
         run: npm run test:jest
 
       # Update latest release (only on Linux and for the main branch)
