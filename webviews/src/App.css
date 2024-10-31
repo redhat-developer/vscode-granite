@@ -211,3 +211,15 @@ button:disabled {
     gap: 8px 16px;
   }
 }
+
+.info-message {
+  width: 500px;
+  font-size: 0.8rem;
+  background-color: var(--vscode-editor-background);
+  color: var(--vscode-editor-foreground);
+  padding: 10px;
+  text-align: left;
+  border-radius: 5px;
+  margin: 0 auto;
+  opacity: 0.4;
+}
