@@ -103,23 +103,16 @@ export class AiAssistantConfigurator {
     this.apiBase = DEFAULT_API_BASE;
   }
 
-  private async shouldShowContinueOnboarding(configFile: string): Promise<boolean> {
+  private async mightShowContinueOnboarding(configFile: string) {
     const config = await readConfig(configFile);
     if (!config || !config.models) {
       return false;
     }
-    return config.models.length === 1 &&
-      config.models[0].provider === "anthropic" &&
-      config.models[0].apiKey === "";
+    return config.models.length === 1 && config.models[0].provider === "anthropic" && config.models[0].apiKey === "";
   }
 
   public async openWizard() {
     if (isContinueInstalled()) {
-      vscode.window.showInformationMessage(
-        `Upon launching Continue.dev, a welcome screen will be displayed.
-          Make sure to close it before setting up IBM Granite Code Models.`,
-        ``
-      );
       await this.configureAssistant();
     } else {
       return; //await recommendContinue();
@@ -132,6 +125,8 @@ export class AiAssistantConfigurator {
     if (!config) {
       return vscode.window.showErrorMessage("No ~/.continue/config.json found");
     }
+    // Check if we should show the Continue Onboarding message
+    const continueOnboardingMightShow = await this.mightShowContinueOnboarding(configFile);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const models: ModelConfig[] = config.models === undefined ? [] : config.models;
     // check if model object is already in the config json
@@ -175,9 +170,16 @@ export class AiAssistantConfigurator {
     if (updateConfig) {
       await writeConfig(configFile, config);
       const currentChatModel = this.request.chatModel ?? null;
+      let message = "Continue configuration completed.";
+      if (currentChatModel) {
+        message += ` Now select '${currentChatModel}' from Continue's chat model dropdown.`;
+      }
+      vscode.window.showInformationMessage(message);
+    }
+
+    if (continueOnboardingMightShow) {
       vscode.window.showInformationMessage(
-        `Continue configuration completed. Now select the ${currentChatModel} from Continue's chat model dropdown.`,
-        ``
+        "If the Continue view shows onboarding options, they can safely be closed. Otherwise you risk overwriting the Granite configuration.", ""
       );
     }
   }

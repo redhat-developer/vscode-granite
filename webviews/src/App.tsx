@@ -199,7 +199,7 @@ function App() {
         <p className="m-0 mb-1">
           Run <a href="https://github.com/ibm-granite/granite-code-models" target="_blank" rel="noopener noreferrer">IBM Granite Code</a> models effortlessly with
           <a href="https://github.com/ollama/ollama" target="_blank" rel="noopener noreferrer"> Ollama</a> and
-          <a href="https://github.com/continuedev/continue" target="_blank" rel="noopener noreferrer">Continue.dev</a>.
+          <a href="https://github.com/continuedev/continue" target="_blank" rel="noopener noreferrer">Continue</a>.
           Granite will help you write, generate, explain or document code, while your data stays secure and private on your own machine.
         </p>
       </div>

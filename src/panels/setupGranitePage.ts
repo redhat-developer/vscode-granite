@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import { env } from 'process';
-import * as vscode from 'vscode';
 import {
   CancellationError,
   commands,
@@ -15,7 +14,6 @@ import {
 import { DOWNLOADABLE_MODELS, isDevMode } from '../commons/constants';
 import { ProgressData } from "../commons/progressData";
 import { ModelStatus, ServerStatus } from '../commons/statuses';
-import { configFilePath, readConfig } from '../configureAssistant';
 import { IModelServer } from '../modelServer';
 import { MockServer } from '../ollama/mockServer';
 import { OllamaServer } from '../ollama/ollamaServer';
@@ -214,17 +212,6 @@ export class SetupGranitePage {
     `;
   }
 
-  private async shouldShowContinueOnboarding(): Promise<boolean> {
-    const config = await readConfig(configFilePath);
-    if (!config || !config.models) {
-      vscode.window.showErrorMessage(`No Models Found!`);
-      return false;
-    }
-    return config.models.length === 1 &&
-      config.models[0].provider === "anthropic" &&
-      config.models[0].apiKey === "";
-  }
-
   /**
    * Sets up an event listener to listen for messages passed from the webview context and
    * executes code based on the message that is recieved.
@@ -243,15 +230,6 @@ export class SetupGranitePage {
 
         switch (command) {
           case "init":
-            // Check if we should show the Continue Onboarding message
-            const shouldShowContinueOnboarding = await this.shouldShowContinueOnboarding();
-            if (shouldShowContinueOnboarding) {
-              vscode.window.showInformationMessage(
-                `Upon launching Continue AI code Assistant, A Quickstart Popup will be displayed.
-                  Make sure to close it before setting up IBM Granite Code Models.`,
-                ``
-              );
-            }
             webview.postMessage({
               command: "init",
               data: {
@@ -358,8 +336,6 @@ export class SetupGranitePage {
     if (embeddingsModel !== null && !modelsToInstall.includes(embeddingsModel)) {
       modelsToInstall.push(embeddingsModel);
     }
-
-
 
     try {
       // Attempt to install the required models
