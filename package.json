@@ -79,6 +79,6 @@
   },
   "dependencies": {
     "@redhat-developer/vscode-redhat-telemetry": "^0.9.0",
-    "cheerio": "^1.0.0"
+    "node-html-parser": "^6.1.13"
   }
 }
