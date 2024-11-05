@@ -103,6 +103,14 @@ export class AiAssistantConfigurator {
     this.apiBase = DEFAULT_API_BASE;
   }
 
+  private async mightShowContinueOnboarding(configFile: string) {
+    const config = await readConfig(configFile);
+    if (!config || !config.models) {
+      return false;
+    }
+    return config.models.length === 1 && config.models[0].provider === "anthropic" && config.models[0].apiKey === "";
+  }
+
   public async openWizard() {
     if (isContinueInstalled()) {
       await this.configureAssistant();
@@ -117,6 +125,8 @@ export class AiAssistantConfigurator {
     if (!config) {
       return vscode.window.showErrorMessage("No ~/.continue/config.json found");
     }
+    // Check if we should show the Continue Onboarding message
+    const continueOnboardingMightShow = await this.mightShowContinueOnboarding(configFile);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const models: ModelConfig[] = config.models === undefined ? [] : config.models;
     // check if model object is already in the config json
@@ -159,8 +169,17 @@ export class AiAssistantConfigurator {
 
     if (updateConfig) {
       await writeConfig(configFile, config);
+      const currentChatModel = this.request.chatModel ?? null;
+      let message = "Continue configuration completed.";
+      if (currentChatModel) {
+        message += ` Now select '${currentChatModel}' from Continue's chat model dropdown.`;
+      }
+      vscode.window.showInformationMessage(message);
+    }
+
+    if (continueOnboardingMightShow) {
       vscode.window.showInformationMessage(
-        `Continue configuration completed.`
+        "If the Continue view shows onboarding options, they can safely be closed. Otherwise you risk overwriting the Granite configuration.", ""
       );
     }
   }
@@ -177,7 +196,9 @@ function isContinueInstalled(): boolean {
   return continueExt !== undefined;
 }
 
-async function readConfig(configFile: string): Promise<any> {
+export const configFilePath = path.join(os.homedir(), ".continue/config.json");
+
+export async function readConfig(configFile: string): Promise<any> {
   try {
     await fs.access(configFile, fs.constants.R_OK);
   } catch (error) {
