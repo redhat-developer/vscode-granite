@@ -34,7 +34,7 @@ export async function getRemoteModelInfo(modelId: string): Promise<ModelInfo | u
         const data: ModelInfo = {
           id: modelId,
           size,
-          digest: "x" + digest
+          digest
         };
         // Cache the successful result
         cache.set(modelId, data);
