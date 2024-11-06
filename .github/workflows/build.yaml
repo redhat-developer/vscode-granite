@@ -3,12 +3,12 @@ name: CI
 # Triggers the workflow on all pushes or pull requests on any branch
 on:
   push:
-    branches: 
-      - '**'
+    branches:
+      - "**"
   pull_request:
-    branches: 
-      - '**'
-     
+    branches:
+      - "**"
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
@@ -16,7 +16,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest,windows-latest]  # Define the operating systems for the matrix
+        os: [
+          macos-latest,
+          ubuntu-latest,
+          windows-latest,
+        ] # Define the operating systems for the matrix
 
     steps:
       # Checkout code
@@ -36,7 +40,7 @@ jobs:
       - name: Run build
         run: npm run package
 
-      # Generate .vsix package for the extension 
+      # Generate .vsix package for the extension
       - name: Generate .vsix package
         if: runner.os == 'Linux'
         run: |
@@ -45,11 +49,11 @@ jobs:
 
       # Upload VSIX artifact
       - name: Upload VSIX artifact
-        if: runner.os == 'Linux' 
+        if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
-          name: vscode-granite-vsix-${{ runner.os }}-${{ github.run_id }}  # Unique name with OS and run ID
-          path: "./vscode-granite-*.vsix"
+          name: vscode-paver-vsix-${{ runner.os }}-${{ github.run_id }} # Unique name with OS and run ID
+          path: "./vscode-paver-*.vsix"
 
       ## Run tests
       - name: Run Tests

@@ -198,8 +198,7 @@ function App() {
       <div className="main-description">
         <p className="m-0 mb-1">
           Run <a href="https://github.com/ibm-granite/granite-code-models" target="_blank" rel="noopener noreferrer">IBM Granite Code</a> models effortlessly with
-          <a href="https://github.com/ollama/ollama" target="_blank" rel="noopener noreferrer"> Ollama</a> and
-          <a href="https://github.com/continuedev/continue" target="_blank" rel="noopener noreferrer">Continue</a>.
+          <a href="https://github.com/ollama/ollama" target="_blank" rel="noopener noreferrer"> Ollama</a> and <a href="https://github.com/continuedev/continue" target="_blank" rel="noopener noreferrer">Continue</a>.
           Granite will help you write, generate, explain or document code, while your data stays secure and private on your own machine.
         </p>
       </div>
@@ -277,7 +276,7 @@ function App() {
       <div className="info-message">
         <p>
           To reopen this wizard, open the command palette and run:
-          <p style={{ margin: 2, paddingLeft: 10 }}><strong>Granite: Setup Granite Code as code assistant</strong></p>.
+          <p style={{ margin: 2, paddingLeft: 10 }}><strong>Paver: Setup Granite Code as code assistant</strong></p>.
         </p>
       </div>
     </main>

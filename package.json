@@ -1,6 +1,6 @@
 {
-  "name": "vscode-granite",
-  "displayName": "Granite Code Assistant",
+  "name": "vscode-paver",
+  "displayName": "Paver",
   "description": "Use IBM Granite Code LLM as your Code Assistant",
   "publisher": "redhat",
   "version": "0.1.0",
@@ -10,7 +10,7 @@
     "vscode": "^1.88.0"
   },
   "repository": {
-    "url": "https://github.com/redhat-developer/vscode-granite"
+    "url": "https://github.com/redhat-developer/vscode-paver"
   },
   "main": "./dist/extension.js",
   "categories": [
@@ -40,8 +40,8 @@
     },
     "commands": [
       {
-        "command": "vscode-granite.setup",
-        "category": "Granite",
+        "command": "paver.setup",
+        "category": "Paver",
         "title": "Setup Granite Code as code assistant"
       }
     ]
