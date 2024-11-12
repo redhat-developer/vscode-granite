@@ -62,7 +62,7 @@ jobs:
       - name: Set Up NodeJS
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       # Run install dependencies
       - name: Install dependencies
@@ -89,17 +89,17 @@ jobs:
           title: "${{ env.EXT_VERSION }}"
           draft: true
           files: |
-              vscode-granite-*.vsix
+            vscode-paver-*.vsix
 
       - name: Publish to VS Code Marketplace
         if: ${{ github.event_name == 'schedule' || inputs.publishToMarketPlace == 'true' || inputs.publishPreRelease == 'true' }}
         run: |
-          npx @vscode/vsce publish -p ${{ secrets.VSCODE_MARKETPLACE_TOKEN }} --packagePath vscode-granite-${{ env.EXT_VERSION }}.vsix
+          npx @vscode/vsce publish -p ${{ secrets.VSCODE_MARKETPLACE_TOKEN }} --packagePath vscode-paver-${{ env.EXT_VERSION }}.vsix
 
       - name: Publish to OpenVSX Registry
         if: ${{ github.event_name == 'schedule' || inputs.publishToOVSX == 'true' || inputs.publishPreRelease == 'true' }}
         run: |
-          npx ovsx publish -p ${{ secrets.OVSX_MARKETPLACE_TOKEN }}  --packagePath vscode-granite-${{ env.EXT_VERSION }}.vsix
+          npx ovsx publish -p ${{ secrets.OVSX_MARKETPLACE_TOKEN }}  --packagePath vscode-paver-${{ env.EXT_VERSION }}.vsix
 
   post-release-job:
     if: ${{ inputs.publishToMarketPlace == 'true' && inputs.publishToOVSX == 'true' && inputs.EXTENSION_TAG == 'main' }}
@@ -111,7 +111,7 @@ jobs:
       - name: Set Up NodeJS
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
       - name: Upversion for Development
         run: |
           tag=`npm version --no-git-tag-version patch`

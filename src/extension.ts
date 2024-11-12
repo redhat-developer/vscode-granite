@@ -5,8 +5,8 @@ import { Telemetry } from "./telemetry";
 
 export async function activate(context: ExtensionContext) {
   await Telemetry.initialize(context);
-  const setupGraniteCmd = commands.registerCommand("vscode-granite.setup", async () => {
-    await Telemetry.send("granite.commands.setup");
+  const setupGraniteCmd = commands.registerCommand("paver.setup", async () => {
+    await Telemetry.send("paver.commands.setup");
     SetupGranitePage.render(context);
   });
   context.subscriptions.push(setupGraniteCmd);
@@ -14,6 +14,6 @@ export async function activate(context: ExtensionContext) {
 
   if (!hasRunBefore || isDevMode) {
     await context.globalState.update('hasRunSetup', true);
-    return commands.executeCommand('vscode-granite.setup');
+    return commands.executeCommand('paver.setup');
   }
 }

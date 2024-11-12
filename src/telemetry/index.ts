@@ -15,7 +15,9 @@ export namespace Telemetry {
   }
 
   export async function send(eventName: string, properties?: { [key: string]: any }): Promise<void> {
-    console.log(`Sending event: ${eventName} with properties: ${JSON.stringify(properties)}`);
+    const props = properties ? `with properties: ${JSON.stringify(properties)}` : '';
+    console.log(`Sending event: ${eventName} ${props}`);
     return await telemetryService?.send({ name: eventName, properties });
   }
+
 }

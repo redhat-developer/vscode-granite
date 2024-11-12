@@ -1,6 +1,7 @@
 import os from "os";
 import path from 'path';
 import { CancellationError, env, ExtensionContext, Progress, ProgressLocation, Uri, window } from "vscode";
+import { EXTENSION_ID } from "../commons/constants";
 import { DEFAULT_MODEL_INFO, ModelInfo } from "../commons/modelInfo";
 import { getStandardName } from "../commons/naming";
 import { ProgressData } from "../commons/progressData";
@@ -9,6 +10,7 @@ import { AiAssistantConfigurator } from "../configureAssistant";
 import { IModelServer } from "../modelServer";
 import { terminalCommandRunner } from "../terminal/terminalCommandRunner";
 import { executeCommand } from "../utils/cpUtils";
+import { downloadFileFromUrl } from "../utils/downloadUtils";
 import { getRemoteModelInfo } from "./ollamaLibrary";
 
 const PLATFORM = os.platform();
@@ -39,6 +41,9 @@ export class OllamaServer implements IModelServer {
     if (await isHomebrewAvailable()) {
       // homebrew is available
       modes.push({ id: "homebrew", label: "Install with Homebrew", supportsRefresh: true });
+    }
+    if (isWin()) {
+      modes.push({ id: "windows", label: "Install automatically", supportsRefresh: true });
     }
     modes.push({ id: "manual", label: "Install manually", supportsRefresh: true });
     return modes;
@@ -103,7 +108,6 @@ export class OllamaServer implements IModelServer {
         return false;
       }
       case "homebrew": {
-        this.currentStatus = ServerStatus.installing; //We need to detect the terminal output to know when installation stopped (successfully or not)
         installCommand = [
           'clear',
           'set -e',  // Exit immediately if a command exits with a non-zero status
@@ -124,13 +128,27 @@ export class OllamaServer implements IModelServer {
           `"${start_ollama_sh}"`,  // Use quotes in case the path contains spaces
         ].join(' && ');
         break;
+      case "windows":
+        this.currentStatus = ServerStatus.installing;
+        const ollamaInstallerPath = await this.downloadOllamaInstaller();
+        if (!ollamaInstallerPath) {
+          return false;
+        }
+        //At this point the file is guaranteed to exist
+        installCommand = [
+          'clear',
+          `$ErrorActionPreference = "Stop"`,
+          `& "${ollamaInstallerPath}" /Silent`,
+          `$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")`, // refresh environment variables in the terminal
+        ].join(' ; ');
+        break;
       case "manual":
       default:
         env.openExternal(Uri.parse("https://ollama.com/download"));
         return true;
     }
     if (installCommand) {
-      this.currentStatus = ServerStatus.installing;
+      this.currentStatus = ServerStatus.installing;//We need to detect the terminal output to know when installation stopped (successfully or not)
       await terminalCommandRunner.runInTerminal(
         installCommand,
         {
@@ -141,6 +159,20 @@ export class OllamaServer implements IModelServer {
     }
     return true;
   }
+
+  async downloadOllamaInstaller(): Promise<string | undefined> {
+    return await window.withProgress({
+      location: ProgressLocation.Notification,
+      title: `Downloading Ollama`,
+      cancellable: true,
+    }, async (progress, token) => {
+      const randomSuffix = Math.random().toString(36).substring(2, 10);
+      const ollamaInstallerPath = path.join(os.tmpdir(), EXTENSION_ID, `OllamaSetup-${randomSuffix}.exe`);
+      await downloadFileFromUrl("https://ollama.com/download/OllamaSetup.exe", ollamaInstallerPath, token, progress);
+      return ollamaInstallerPath;
+    });
+  }
+
 
   async getModelStatus(modelName?: string): Promise<ModelStatus> {
     if (!modelName || this.currentStatus !== ServerStatus.started) {

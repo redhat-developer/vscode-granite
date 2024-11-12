@@ -12,6 +12,9 @@ out/test/**
 # Ignore source code
 src/**
 
+# Ignore images from README, as the github repo images will be referenced instead
+media/**
+
 # Ignore all webview-ui files except the build directory
 webviews/src/**
 webviews/public/**
@@ -36,3 +39,4 @@ node_modules/**
 out/**
 DCO
 .github/**
+releng/**

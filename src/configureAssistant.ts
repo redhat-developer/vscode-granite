@@ -17,6 +17,7 @@ interface ModelConfig {
   provider?: string;
   contextLength?: number;
   systemMessage?: string;
+  apiKey?: string;
   completionOptions?: CompletionOptions;
 }
 
@@ -103,6 +104,17 @@ export class AiAssistantConfigurator {
     this.apiBase = DEFAULT_API_BASE;
   }
 
+  private async mightShowContinueOnboarding(models: ModelConfig[]) {
+    if (!models) {
+      return false;
+    }
+    return models.length === 1 && this.isDefaultModel(models[0]);
+  }
+
+  private async isDefaultModel(model: ModelConfig) {
+    return model.provider === "anthropic" && model.apiKey === "";
+  }
+
   public async openWizard() {
     if (isContinueInstalled()) {
       await this.configureAssistant();
@@ -117,13 +129,17 @@ export class AiAssistantConfigurator {
     if (!config) {
       return vscode.window.showErrorMessage("No ~/.continue/config.json found");
     }
+    // Check if we should show the Continue Onboarding message
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const models: ModelConfig[] = config.models === undefined ? [] : config.models;
+    const continueOnboardingMightShow = await this.mightShowContinueOnboarding(models);
+
     // check if model object is already in the config json
     let updateConfig = false;
     if (this.request.chatModel) {
       const modelConfig = getModelConfig(this.request.chatModel);
-      const existing = models.find((m) => modelConfig.provider === m.provider && this.getApiBase(modelConfig) === this.getApiBase(m));
+      const existing = continueOnboardingMightShow ? models[0] : // there's only 1 model, and it's the default one, we'll replace it
+        models.find((m) => modelConfig.provider === m.provider && this.getApiBase(modelConfig) === this.getApiBase(m));
       if (existing) {
         const index = models.indexOf(existing);
         // if model config is different or it's not the first model, change that
@@ -159,8 +175,17 @@ export class AiAssistantConfigurator {
 
     if (updateConfig) {
       await writeConfig(configFile, config);
+      const currentChatModel = this.request.chatModel ?? null;
+      let message = "Continue configuration completed.";
+      if (currentChatModel) {
+        message += ` Now select '${currentChatModel}' from Continue's chat model dropdown.`;
+      }
+      vscode.window.showInformationMessage(message);
+    }
+
+    if (continueOnboardingMightShow) {
       vscode.window.showInformationMessage(
-        `Continue configuration completed.`
+        "If the Continue view shows onboarding options, they can safely be closed. Otherwise you risk overwriting the Granite configuration.", ""
       );
     }
   }
@@ -177,7 +202,9 @@ function isContinueInstalled(): boolean {
   return continueExt !== undefined;
 }
 
-async function readConfig(configFile: string): Promise<any> {
+export const configFilePath = path.join(os.homedir(), ".continue/config.json");
+
+export async function readConfig(configFile: string): Promise<any> {
   try {
     await fs.access(configFile, fs.constants.R_OK);
   } catch (error) {

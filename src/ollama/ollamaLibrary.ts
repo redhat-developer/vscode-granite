@@ -1,4 +1,4 @@
-import * as cheerio from 'cheerio';
+import { parse } from 'node-html-parser';
 import { ModelInfo } from '../commons/modelInfo';
 
 const cache = new Map<string, ModelInfo | undefined>();//TODO limit caching lifespan
@@ -22,13 +22,13 @@ export async function getRemoteModelInfo(modelId: string): Promise<ModelInfo | u
     }
 
     const html = await response.text();
-    const $ = cheerio.load(html);
-    const fileExplorer = $('#file-explorer');
-    const itemsCenter = fileExplorer.find('.items-center');
-    const lastParagraphElement = itemsCenter.find('p').last();
+    const root = parse(html);
+    const fileExplorer = root.querySelector('#file-explorer');
+    const itemsCenter = fileExplorer?.querySelector('.items-center');
+    const lastParagraphElement = itemsCenter?.querySelectorAll('p')?.pop();
 
-    if (lastParagraphElement.length > 0) {
-      const lastParagraph = lastParagraphElement.text().trim();
+    if (lastParagraphElement) {
+      const lastParagraph = lastParagraphElement.text.trim();
       if (lastParagraph.includes(INFO_DELIMITER)) {
         const [digest, size] = lastParagraph.split(INFO_DELIMITER).map(item => item.trim());
         const data: ModelInfo = {

@@ -349,7 +349,7 @@ export class SetupGranitePage {
           }
           await this.server.installModel(model, reportProgress);
           this.publishStatus(webview);
-          await Telemetry.send("granite.setup.model.install", { model });
+          await Telemetry.send("paver.setup.model.install", { model });
         }
       }
 
@@ -360,7 +360,7 @@ export class SetupGranitePage {
         embeddingsModel
       );
       console.log("Granite Code AI-Assistant setup complete");
-      await Telemetry.send("granite.setup.success", {
+      await Telemetry.send("paver.setup.success", {
         chatModelId: chatModel ?? 'none',
         tabModelId: tabModel ?? 'none',
         embeddingsModelId: embeddingsModel ?? 'none',
@@ -371,7 +371,7 @@ export class SetupGranitePage {
         return;
       }
       // Generic error handling for all errors
-      await Telemetry.send("granite.setup.error", {
+      await Telemetry.send("paver.setup.error", {
         error: error?.message ?? 'unknown error',
         chatModelId: chatModel ?? 'none',
         tabModelId: tabModel ?? 'none',
