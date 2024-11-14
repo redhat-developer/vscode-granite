@@ -126,7 +126,7 @@ export class SetupGranitePage {
         // Panel view type
         "modelSetup",
         // Panel title
-        "Setup IBM Granite Code",
+        "Setup IBM Granite Models",
         // The editor column the panel should be displayed in
         ViewColumn.One,
         // Extra panel configurations
@@ -202,7 +202,7 @@ export class SetupGranitePage {
 
           <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; connect-src http://localhost">
           <link rel="stylesheet" type="text/css" href="${stylesUri}">
-          <title>Granite Code</title>
+          <title>Granite Models</title>
         </head>
         <body>
           <div id="root"></div>
@@ -321,7 +321,7 @@ export class SetupGranitePage {
     graniteConfiguration: GraniteConfiguration, reportProgress: (progress: ProgressData) => void, webview: Webview): Promise<void> {
     //TODO handle continue (conflicting) onboarding page
 
-    console.log("Starting Granite Code AI-Assistant configuration...");
+    console.log("Starting Granite AI-Assistant configuration...");
     const chatModel = graniteConfiguration.chatModelId;
 
     const tabModel = graniteConfiguration.chatModelId; //TODO enable when advanced setup is available graniteConfiguration.tabModelId;
@@ -360,7 +360,7 @@ export class SetupGranitePage {
         tabModel,
         embeddingsModel
       );
-      console.log("Granite Code AI-Assistant setup complete");
+      console.log("Granite AI-Assistant setup complete");
       await Telemetry.send("paver.setup.success", {
         chatModelId: chatModel ?? 'none',
         tabModelId: tabModel ?? 'none',

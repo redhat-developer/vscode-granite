@@ -55,7 +55,7 @@ const baseGraniteConfig: Partial<ModelConfig> = {
     presencePenalty: 0.0,
     frequencyPenalty: 0.1
   },
-  systemMessage: "You are Granite Code, an AI language model developed by IBM. You are a cautious assistant. You carefully follow instructions. You are helpful and harmless and you follow ethical guidelines and promote positive behavior.",
+  systemMessage: "You are Granite, an AI language model developed by IBM. You are a cautious assistant. You carefully follow instructions. You are helpful and harmless and you follow ethical guidelines and promote positive behavior.",
 };
 
 const modelConfigs: ModelConfig[] = [
