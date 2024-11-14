@@ -3,23 +3,23 @@
 `Paver` simplifies the setup of the
 [Continue extension](https://marketplace.visualstudio.com/items?itemName=Continue.continue)
 to integrate [IBM](https://www.ibm.com/)'s
-[Granite code models](https://github.com/ibm-granite/granite-code-models), as
+[Granite models](https://github.com/ibm-granite/granite-3.0-language-models), as
 your code assistant in Visual Studio Code, using [Ollama](https://ollama.com/)
 as the runtime environment.
 
-By leveraging Granite code models and open-source components such as Ollama and
+By leveraging Granite models and open-source components such as Ollama and
 Continue, you can write, generate, explain, or document code with full control
 over your data, ensuring it stays private and secure on your machine.
 
 ## Getting Started
 
 This project features an intuitive UI, designed to simplify the installation and
-management of Ollama and Granite Code models. The first time the extension
+management of Ollama and Granite models. The first time the extension
 starts, a setup wizard is automatically launched to guide you through the
 installation process.
 
 You can later open the setup wizard anytime from the command palette by
-executing the _"Paver: Setup Granite Code as code assistant"_ command.
+executing the _"Paver: Setup Granite as code assistant"_ command.
 
 ### Installation Prerequisites
 
@@ -72,20 +72,20 @@ interact with the models via the UI or tab completion.
 
 ## About the Stack
 
-### IBM Granite Code Models
+### IBM Granite Models
 
-The Granite Code models are optimized for enterprise software development
+The Granite models are optimized for enterprise software development
 workflows, performing well across various coding tasks (e.g., code generation,
 fixing, and explanation). They are versatile "all-around" code models.
 
-Granite Code comes in various sizes to fit your workstation's resources.
+Granite comes in various sizes to fit your workstation's resources.
 Generally, larger models yield better results but require more disk space,
 memory, and processing power.
 
-**Recommendation:** Use Model Size 8B for chat and 8B for tab code completion.
+**Recommendation:** Using Model Size 2B should work on most machines. Use the 8b version if you're running on a high-end computer.
 
 For more details, refer to
-[Granite Code Models](https://github.com/ibm-granite/granite-code-models).
+[Granite Models](https://github.com/ibm-granite/granite-3.0-language-models).
 
 ### Ollama
 

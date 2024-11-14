@@ -323,7 +323,8 @@ export class SetupGranitePage {
 
     console.log("Starting Granite Code AI-Assistant configuration...");
     const chatModel = graniteConfiguration.chatModelId;
-    const tabModel = graniteConfiguration.tabModelId;
+
+    const tabModel = graniteConfiguration.chatModelId; //TODO enable when advanced setup is available graniteConfiguration.tabModelId;
     const embeddingsModel = graniteConfiguration.embeddingsModelId;
     // Collect all unique models to install from graniteConfiguration
     const modelsToInstall: string[] = []; //I'd prefer using a sorted set but there's no such thing in vanilla typescript

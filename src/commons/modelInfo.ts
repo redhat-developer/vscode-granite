@@ -5,23 +5,23 @@ export const DEFAULT_MODEL_INFO = new Map<string, ModelInfo>();
   digest: ''
 },
 {
+  id: 'granite3-dense:2b',
+  size: '1.6GB',
+  digest: ''
+},
+{
+  id: 'granite3-dense:8b',
+  size: '4.9GB',
+  digest: ''
+},
+{
   id: 'granite-code:3b',
-  size: '274MB',
+  size: '2GB',
   digest: ''
 },
 {
   id: 'granite-code:8b',
   size: '4GB',
-  digest: ''
-},
-{
-  id: 'granite-code:20b',
-  size: '12GB',
-  digest: ''
-},
-{
-  id: 'granite-code:34b',
-  size: '20GB',
   digest: ''
 }
 ].forEach((m: ModelInfo) => {

@@ -19,7 +19,7 @@ describe('App Component', () => {
   beforeEach(() => {
     // Clear mocks before each test
     jest.clearAllMocks();
-    
+
     // Setup message event listener
     window.addEventListener = jest.fn((event: string, handler: EventListenerOrEventListenerObject) => {
       if (event === 'message') {
@@ -34,7 +34,7 @@ describe('App Component', () => {
 
   it('renders the main title', () => {
     render(<App />);
-    const titleElement = screen.getByText(/Setup IBM Granite Code as your code assistant with Continue/i);
+    const titleElement = screen.getByText(/Setup IBM Granite as your code assistant with Continue/i);
     expect(titleElement).toBeInTheDocument();
   });
 
@@ -66,7 +66,7 @@ describe('App Component', () => {
     });
 
     // Click the button
-    const setupButton = screen.getByText('Setup Granite Code');
+    const setupButton = screen.getByText('Setup Granite');
     await act(async () => {
       fireEvent.click(setupButton);
       // Wait for state updates
@@ -77,8 +77,8 @@ describe('App Component', () => {
     expect(mockPostMessage).toHaveBeenCalledWith({
       command: 'setupGranite',
       data: {
-        tabModelId: 'granite-code:8b',
-        chatModelId: 'granite-code:8b',
+        chatModelId: 'granite3-dense:2b',
+        tabModelId: null,
         embeddingsModelId: 'nomic-embed-text:latest'
       }
     });
@@ -105,7 +105,7 @@ describe('App Component', () => {
       } as MessageEvent);
     });
 
-    const setupButton = screen.getByText('Setup Granite Code');
+    const setupButton = screen.getByText('Setup Granite');
     expect(setupButton).toBeDisabled();
   });
 
@@ -146,7 +146,7 @@ describe('App Component', () => {
     });
 
     // Click the setup button
-    const setupButton = screen.getByText('Setup Granite Code');
+    const setupButton = screen.getByText('Setup Granite');
     await act(async () => {
       fireEvent.click(setupButton);
       await new Promise(resolve => setTimeout(resolve, 0));
@@ -156,8 +156,8 @@ describe('App Component', () => {
     expect(mockPostMessage).toHaveBeenCalledWith({
       command: 'setupGranite',
       data: {
-        tabModelId: 'granite-code:8b',
-        chatModelId: 'granite-code:8b',
+        chatModelId: 'granite3-dense:2b',
+        tabModelId: null,
         embeddingsModelId: 'nomic-embed-text:latest'
       }
     });

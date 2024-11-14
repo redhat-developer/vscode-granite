@@ -19,10 +19,11 @@ interface ModelListProps {
     status: ModelStatus | null;
     options: ModelOption[];
     progress?: ProgressData;
+    tooltip?: string;
     disabled?: boolean;
 }
 
-const ModelList: React.FC<ModelListProps> = ({ className, label, value, onChange, status, options, progress, disabled }) => {
+const ModelList: React.FC<ModelListProps> = ({ className, label, value, onChange, status, options, progress, tooltip, disabled }) => {
     const selectHeight = '16px';
     const customStyles = {
         container: (base: any) => ({
@@ -123,7 +124,7 @@ const ModelList: React.FC<ModelListProps> = ({ className, label, value, onChange
 
                 <label className='model-list--label' htmlFor={label}>
                     <StatusCheck type={getIconType(status)} title={getTitle(status)} />
-                    <span>{label}:</span>
+                    <span title={tooltip}>{label}:</span>
                 </label>
 
                 <div className={className + `--wrapper`}>
