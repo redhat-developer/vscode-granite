@@ -9,14 +9,16 @@ import { StatusCheck, StatusValue } from "./StatusCheck";
 
 function App() {
   const modelOptions: ModelOption[] = [
+    { label: 'granite3-dense:2b', value: 'granite3-dense:2b', info: '1.6 GB' },
+    { label: 'granite3-dense:8b', value: 'granite3-dense:8b', info: '4.9 GB' },
     { label: 'granite-code:3b', value: 'granite-code:3b', info: '2.0 GB' },
     { label: 'granite-code:8b', value: 'granite-code:8b', info: '4.6 GB' },
-    { label: 'granite-code:20b', value: 'granite-code:20b', info: '12 GB' },
-    { label: 'granite-code:34b', value: 'granite-code:34b', info: '19 GB' },
     { label: 'Keep existing configuration', value: null, info: null }
   ];
 
   const tabOptions: ModelOption[] = [
+    { label: 'granite3-dense:2b', value: 'granite3-dense:2b', info: '1.6 GB' },
+    { label: 'granite3-dense:8b', value: 'granite3-dense:8b', info: '4.9 GB' },
     { label: 'granite-code:3b', value: 'granite-code:3b', info: '2.0 GB' },
     { label: 'granite-code:8b', value: 'granite-code:8b', info: '4.6 GB' },
     { label: 'Keep existing configuration', value: null, info: null }
@@ -27,8 +29,8 @@ function App() {
     { label: 'Keep existing configuration', value: null, info: null }
   ];
 
-  const [tabModel, setTabModel] = useState<string | null>(tabOptions[1].value); //use 8b by default
-  const [chatModel, setChatModel] = useState<string | null>(modelOptions[1].value);//use 8b by default
+  const [tabModel, setTabModel] = useState<string | null>(null); //tabOptions[3].value use 3b by default
+  const [chatModel, setChatModel] = useState<string | null>(modelOptions[0].value);//use dense:2b by default
   const [embeddingsModel, setEmbeddingsModel] = useState<string | null>(embeddingsOptions[0].value);
 
   const [modelPullProgress, setModelPullProgress] = useState<{
@@ -193,11 +195,11 @@ function App() {
 
   return (
     <main className="main-wrapper">
-      <h1 className="main-title">Setup IBM Granite Code as your code assistant with Continue</h1>
+      <h1 className="main-title">Setup IBM Granite as your code assistant with Continue</h1>
 
       <div className="main-description">
         <p className="m-0 mb-1">
-          Run <a href="https://github.com/ibm-granite/granite-code-models" target="_blank" rel="noopener noreferrer">IBM Granite Code</a> models effortlessly with
+          Run <a href="https://github.com/ibm-granite/granite-3.0-language-models" target="_blank" rel="noopener noreferrer">IBM Granite</a> models effortlessly with
           <a href="https://github.com/ollama/ollama" target="_blank" rel="noopener noreferrer"> Ollama</a> and <a href="https://github.com/continuedev/continue" target="_blank" rel="noopener noreferrer">Continue</a>.
           Granite will help you write, generate, explain or document code, while your data stays secure and private on your own machine.
         </p>
@@ -235,15 +237,17 @@ function App() {
 
         <ModelList
           className="model-list"
-          label="Chat model"
+          label="Granite model"
           value={chatModel}
           onChange={(e) => setChatModel(e?.value ?? null)}
           status={getModelStatus(chatModel)}
           options={modelOptions}
           progress={chatModel ? modelPullProgress[chatModel] : undefined}
           disabled={!enabled}
+          tooltip="This model will be used for Chat and Tab Completion"
         />
 
+        {/*
         <ModelList
           className="model-list"
           label="Tab completion model"
@@ -254,6 +258,7 @@ function App() {
           progress={tabModel ? modelPullProgress[tabModel] : undefined}
           disabled={!enabled}
         />
+        */}
 
         <ModelList
           className="model-list"
@@ -268,7 +273,7 @@ function App() {
 
         <div className="final-setup-group">
           <button className="install-button" onClick={handleSetupGraniteClick} disabled={serverStatus !== ServerStatus.started || !enabled || isKeepExistingConfigSelected}>
-            Setup Granite Code
+            Setup Granite
           </button>
         </div>
       </div>
@@ -276,7 +281,7 @@ function App() {
       <div className="info-message">
         <p>
           To reopen this wizard, open the command palette and run:
-          <p style={{ margin: 2, paddingLeft: 10 }}><strong>Paver: Setup Granite Code as code assistant</strong></p>.
+          <p style={{ margin: 2, paddingLeft: 10 }}><strong>Paver: Setup Granite as code assistant</strong></p>.
         </p>
       </div>
     </main>

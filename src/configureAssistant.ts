@@ -36,7 +36,7 @@ export interface AiAssistantConfigurationRequest {
   embeddingsModel: string | null;
 }
 
-const DEFAULT_CONTEXT_LENGTH = 8192;
+const DEFAULT_CONTEXT_LENGTH = 4096;
 const DEFAULT_API_BASE = "http://localhost:11434";
 const DEFAULT_PROVIDER = "ollama";
 
@@ -48,21 +48,21 @@ const baseGraniteConfig: Partial<ModelConfig> = {
   ...baseConfig,
   contextLength: DEFAULT_CONTEXT_LENGTH,
   completionOptions: {
-    maxTokens: 4000,
-    temperature: 0.1,
+    maxTokens: DEFAULT_CONTEXT_LENGTH / 2,
+    temperature: 0,
     topP: 0.9,
     topK: 40,
     presencePenalty: 0.0,
     frequencyPenalty: 0.1
   },
-  systemMessage: "You are Granite Code, an AI language model developed by IBM. You are a cautious assistant. You carefully follow instructions. You are helpful and harmless and you follow ethical guidelines and promote positive behavior. You always respond to greetings (for example, hi, hello, g'day, morning, afternoon, evening, night, what's up, nice to meet you, sup, etc) with \"Hello! I am Granite Code, created by IBM. How can I help you today?\". Please do not say anything else and do not start a conversation.",
+  systemMessage: "You are Granite Code, an AI language model developed by IBM. You are a cautious assistant. You carefully follow instructions. You are helpful and harmless and you follow ethical guidelines and promote positive behavior.",
 };
 
 const modelConfigs: ModelConfig[] = [
   {
     model: "granite-code:3b",
     ...baseGraniteConfig,
-    contextLength: 128000,
+    contextLength: 24000,
   },
   {
     model: "granite-code:8b",
@@ -70,11 +70,11 @@ const modelConfigs: ModelConfig[] = [
     contextLength: 128000,
   },
   {
-    model: "granite-code:20b",
+    model: "granite3-dense:2b",
     ...baseGraniteConfig,
   },
   {
-    model: "granite-code:34b",
+    model: "granite3-dense:8b",
     ...baseGraniteConfig,
   },
   {

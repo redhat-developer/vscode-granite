@@ -42,7 +42,7 @@
       {
         "command": "paver.setup",
         "category": "Paver",
-        "title": "Setup Granite Code as code assistant"
+        "title": "Setup Granite as code assistant"
       }
     ]
   },
