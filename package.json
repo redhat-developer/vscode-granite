@@ -1,7 +1,7 @@
 {
   "name": "vscode-paver",
   "displayName": "Paver",
-  "description": "Use IBM Granite Code LLM as your Code Assistant",
+  "description": "Use IBM Granite LLM as your Code Assistant",
   "publisher": "redhat",
   "version": "0.1.0",
   "icon": "icons/logo.png",
@@ -24,7 +24,7 @@
   ],
   "contributes": {
     "configuration": {
-      "title": "Granite Code Installer",
+      "title": "Granite Models Installer",
       "properties": {
         "redhat.telemetry.enabled": {
           "type": "boolean",
