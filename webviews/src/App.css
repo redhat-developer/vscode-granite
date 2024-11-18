@@ -289,7 +289,6 @@ button:disabled {
   font-size: 0.8rem;
   background-color: var(--vscode-editor-background);
   color: var(--vscode-editor-foreground);
-  /* padding: 10px 0; */
   text-align: left;
   border-radius: 5px;
   opacity: 0.4;
@@ -297,7 +296,6 @@ button:disabled {
   flex-direction: column;
   align-items: flex-start;
   font-size: 12.5px;
-  /* outline: 1px solid red; */
 }
 
 .info-message>p {

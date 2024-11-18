@@ -254,50 +254,45 @@ function App() {
           </div>
         </div>
 
-        {/* <button
-          className={`toggle-button ${uiMode === 'advanced' ? 'active' : ''}`}
-          onClick={() => setUiMode(uiMode === 'simple' ? 'advanced' : 'simple')}
-        >
-          {uiMode === 'advanced' ? 'Simple' : 'Advanced'}
-        </button> */}
-
-        
+        {uiMode === 'simple' ? (
           <ModelList
             className="model-list"
-            label={uiMode === 'simple' ? "Chat Model" : "Chat / Tab Completion Model" }
+            label="Granite model"
             value={chatModel}
-            onChange={(e) => setChatModel(e?.value as string | null)}
+            onChange={(e) => setChatModel(e?.value ?? null)}
             status={getModelStatus(chatModel)}
             options={modelOptions}
             progress={chatModel ? modelPullProgress[chatModel] : undefined}
             disabled={!enabled}
-            tooltip={uiMode === 'simple' ? "This model will be used only for Chat Model" : "This model will be used for both Chat and Tab Completion" }
+            tooltip="This model will be used for Chat and Tab Completion"
           />
 
-        {/* <ModelList
-          className="model-list"
-          label="Granite model"
-          value={chatModel}
-          onChange={(e) => setChatModel(e?.value ?? null)}
-          status={getModelStatus(chatModel)}
-          options={modelOptions}
-          progress={chatModel ? modelPullProgress[chatModel] : undefined}
-          disabled={!enabled}
-          tooltip="This model will be used for Chat and Tab Completion"
-        /> */}
+        ) : (
+          <>
+            <ModelList
+              className="model-list"
+              label="Chat model"
+              value={chatModel}
+              onChange={(e) => setChatModel(e?.value ?? null)}
+              status={getModelStatus(chatModel)}
+              options={modelOptions}
+              progress={chatModel ? modelPullProgress[chatModel] : undefined}
+              disabled={!enabled}
+              tooltip="This model will be used for Chat and Tab Completion"
+            />
 
-        {/*
-        <ModelList
-          className="model-list"
-          label="Tab completion model"
-          value={tabModel}
-          onChange={(e) => setTabModel(e?.value ?? null)}
-          status={getModelStatus(tabModel)}
-          options={tabOptions}
-          progress={tabModel ? modelPullProgress[tabModel] : undefined}
-          disabled={!enabled}
-        />
-        */}
+            <ModelList
+              className="model-list"
+              label="Tab completion model"
+              value={tabModel}
+              onChange={(e) => setTabModel(e?.value ?? null)}
+              status={getModelStatus(tabModel)}
+              options={tabOptions}
+              progress={tabModel ? modelPullProgress[tabModel] : undefined}
+              disabled={!enabled}
+            />
+          </>
+        )}
 
         <ModelList
           className="model-list"
