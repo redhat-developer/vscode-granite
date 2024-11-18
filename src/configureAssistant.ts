@@ -40,6 +40,10 @@ const DEFAULT_CONTEXT_LENGTH = 4096;
 const DEFAULT_API_BASE = "http://localhost:11434";
 const DEFAULT_PROVIDER = "ollama";
 
+//See https://github.com/continuedev/continue/blob/51f4d1b48b7e9fb007b08d344d1afdb725b1a970/core/util/paths.ts#L14-L15
+const CONTINUE_GLOBAL_DIR = process.env.CONTINUE_GLOBAL_DIR ?? path.join(os.homedir(), ".continue");
+const CONTINUE_CONFIG_FILE = path.join(CONTINUE_GLOBAL_DIR, "config.json")
+
 const baseConfig: Partial<ModelConfig> = {
   provider: DEFAULT_PROVIDER,
 };
@@ -124,10 +128,9 @@ export class AiAssistantConfigurator {
   }
 
   async configureAssistant() {
-    const configFile = path.join(os.homedir(), ".continue/config.json");
-    const config = await readConfig(configFile);
+    const config = await readConfig(CONTINUE_CONFIG_FILE);
     if (!config) {
-      return vscode.window.showErrorMessage("No ~/.continue/config.json found");
+      return vscode.window.showErrorMessage(`No ${CONTINUE_CONFIG_FILE} found`);
     }
     // Check if we should show the Continue Onboarding message
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -174,7 +177,7 @@ export class AiAssistantConfigurator {
     }
 
     if (updateConfig) {
-      await writeConfig(configFile, config);
+      await writeConfig(CONTINUE_CONFIG_FILE, config);
       const currentChatModel = this.request.chatModel ?? null;
       let message = "Continue configuration completed.";
       if (currentChatModel) {
@@ -201,8 +204,6 @@ function isContinueInstalled(): boolean {
   const continueExt = vscode.extensions.getExtension(CONTINUE_EXTENSION_ID);
   return continueExt !== undefined;
 }
-
-export const configFilePath = path.join(os.homedir(), ".continue/config.json");
 
 export async function readConfig(configFile: string): Promise<any> {
   try {
