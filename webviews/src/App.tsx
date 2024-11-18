@@ -80,7 +80,7 @@ function App() {
       command: "setupGranite",
       data: {
         chatModelId: chatModel,
-        tabModelId: uiMode === "simple" ? chatModel : tabModel,
+        tabModelId: uiMode === "advanced" ? tabModel : chatModel,
         embeddingsModelId: embeddingsModel
       }
     });
