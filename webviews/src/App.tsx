@@ -76,12 +76,11 @@ function App() {
   }
 
   function handleSetupGraniteClick() {
-    console.log("UiMode:",uiMode, "Test" , uiMode === "advanced" ? chatModel : null);
     vscode.postMessage({
       command: "setupGranite",
       data: {
         chatModelId: chatModel,
-        tabModelId: uiMode === "advanced" ? chatModel : null,
+        tabModelId: uiMode === "simple" ? chatModel : tabModel,
         embeddingsModelId: embeddingsModel
       }
     });
@@ -278,7 +277,7 @@ function App() {
               options={modelOptions}
               progress={chatModel ? modelPullProgress[chatModel] : undefined}
               disabled={!enabled}
-              tooltip="This model will be used for Chat and Tab Completion"
+              tooltip="This model will be used for Chat"
             />
 
             <ModelList
@@ -290,6 +289,7 @@ function App() {
               options={tabOptions}
               progress={tabModel ? modelPullProgress[tabModel] : undefined}
               disabled={!enabled}
+              tooltip="This model will be used for Tab Completion"
             />
           </>
         )}
@@ -317,7 +317,7 @@ function App() {
           ** To reopen this wizard, open the command palette and run:<strong>Paver: Setup Granite as code assistant</strong>.
         </p>
         <p>
-          ** To configure both Chat and Tab Completion, choose <strong><i>Advanced</i></strong>. Otherwise, only configure Chat Model
+          ** To configure both Chat and Tab Completion separately, choose <strong><i>Advanced</i></strong>. Otherwise, choose <strong><i>Simple</i></strong>
         </p>
       </div>
     </main>
