@@ -42,6 +42,7 @@ function App() {
   const [installationModes, setInstallationModes] = useState<{ id: string, label: string, supportsRefresh: true }[]>([]);
 
   const [enabled, setEnabled] = useState<boolean>(true);
+  const [uiMode, setUiMode] = useState<'simple' | 'advanced'>('simple');
 
   const [isKeepExistingConfigSelected, setIsKeepExistingConfigSelected] = useState(false);
 
@@ -75,11 +76,12 @@ function App() {
   }
 
   function handleSetupGraniteClick() {
+    console.log("UiMode:",uiMode, "Test" , uiMode === "advanced" ? chatModel : null);
     vscode.postMessage({
       command: "setupGranite",
       data: {
-        tabModelId: tabModel,
         chatModelId: chatModel,
+        tabModelId: uiMode === "advanced" ? chatModel : null,
         embeddingsModelId: embeddingsModel
       }
     });
@@ -235,7 +237,44 @@ function App() {
           </div>
         </div>
 
-        <ModelList
+        <div className="switch-toggle-wrapper">
+          <label>Model Settings:</label>
+          <div className="switch-toggle">
+            <input 
+              className="switch-toggle-checkbox" 
+              type="checkbox" 
+              id="uiModeSwitch"
+              checked={uiMode === 'advanced'}
+              onChange={() => setUiMode(uiMode === 'simple' ? 'advanced' : 'simple')}
+            />
+            <label className="switch-toggle-label" htmlFor="uiModeSwitch">
+              <span>Simple</span>
+              <span>Advanced</span>
+            </label>
+          </div>
+        </div>
+
+        {/* <button
+          className={`toggle-button ${uiMode === 'advanced' ? 'active' : ''}`}
+          onClick={() => setUiMode(uiMode === 'simple' ? 'advanced' : 'simple')}
+        >
+          {uiMode === 'advanced' ? 'Simple' : 'Advanced'}
+        </button> */}
+
+        
+          <ModelList
+            className="model-list"
+            label={uiMode === 'simple' ? "Chat Model" : "Chat / Tab Completion Model" }
+            value={chatModel}
+            onChange={(e) => setChatModel(e?.value as string | null)}
+            status={getModelStatus(chatModel)}
+            options={modelOptions}
+            progress={chatModel ? modelPullProgress[chatModel] : undefined}
+            disabled={!enabled}
+            tooltip={uiMode === 'simple' ? "This model will be used only for Chat Model" : "This model will be used for both Chat and Tab Completion" }
+          />
+
+        {/* <ModelList
           className="model-list"
           label="Granite model"
           value={chatModel}
@@ -245,7 +284,7 @@ function App() {
           progress={chatModel ? modelPullProgress[chatModel] : undefined}
           disabled={!enabled}
           tooltip="This model will be used for Chat and Tab Completion"
-        />
+        /> */}
 
         {/*
         <ModelList
@@ -280,8 +319,10 @@ function App() {
 
       <div className="info-message">
         <p>
-          To reopen this wizard, open the command palette and run:
-          <p style={{ margin: 2, paddingLeft: 10 }}><strong>Paver: Setup Granite as code assistant</strong></p>.
+          ** To reopen this wizard, open the command palette and run:<strong>Paver: Setup Granite as code assistant</strong>.
+        </p>
+        <p>
+          ** To configure both Chat and Tab Completion, choose <strong><i>Advanced</i></strong>. Otherwise, only configure Chat Model
         </p>
       </div>
     </main>
