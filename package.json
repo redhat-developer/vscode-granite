@@ -1,7 +1,7 @@
 {
   "name": "vscode-paver",
   "displayName": "Paver",
-  "description": "Use IBM Granite Code LLM as your Code Assistant",
+  "description": "Use IBM Granite LLM as your Code Assistant",
   "publisher": "redhat",
   "version": "0.1.0",
   "icon": "icons/logo.png",
@@ -24,7 +24,7 @@
   ],
   "contributes": {
     "configuration": {
-      "title": "Granite Code Installer",
+      "title": "Granite Models Installer",
       "properties": {
         "redhat.telemetry.enabled": {
           "type": "boolean",
@@ -42,7 +42,7 @@
       {
         "command": "paver.setup",
         "category": "Paver",
-        "title": "Setup Granite Code as code assistant"
+        "title": "Setup Granite as code assistant"
       }
     ]
   },
@@ -51,7 +51,7 @@
     "install:all": "npm install && cd webviews && npm install",
     "vscode:prepublish": "npm run package",
     "compile": "npm run check-types && npm run lint && node esbuild.js",
-    "watch": "npm-run-all -p watch:*",
+    "watch": "concurrently 'npm:watch:*'",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "watch:webviews": "cd webviews && npm run watch",
@@ -72,9 +72,9 @@
     "@typescript-eslint/parser": "^7.11.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.0",
+    "concurrently": "^9.1.0",
     "esbuild": "^0.24.0",
     "eslint": "^8.57.1",
-    "npm-run-all": "^4.1.5",
     "typescript": "^5.6.3"
   },
   "dependencies": {

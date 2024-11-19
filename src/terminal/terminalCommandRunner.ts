@@ -18,13 +18,13 @@ class TerminalCommandRunner implements Disposable {
     public async runInTerminal(command: string, options: ITerminalOptions): Promise<Terminal> {
 
         let terminal: Terminal | undefined;
-        const name = "Granite Code Setup";
+        const name = "Granite Models Setup";
         if (window.terminals.length) {
-          terminal = window.terminals.find(t => name === t.name);
+            terminal = window.terminals.find(t => name === t.name);
         }
 
         if (!terminal) {
-          terminal = window.createTerminal(name);
+            terminal = window.createTerminal(name);
         }
         terminal.show();
         terminal.sendText(command);
