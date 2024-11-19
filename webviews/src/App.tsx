@@ -76,11 +76,12 @@ function App() {
   }
 
   function handleSetupGraniteClick() {
+    const UImodeTabModel = uiMode === "advanced" ? tabModel : chatModel;
     vscode.postMessage({
       command: "setupGranite",
       data: {
         chatModelId: chatModel,
-        tabModelId: uiMode === "advanced" ? tabModel : chatModel,
+        tabModelId: UImodeTabModel,
         embeddingsModelId: embeddingsModel
       }
     });
