@@ -34,7 +34,7 @@ function App() {
   const [embeddingsModel, setEmbeddingsModel] = useState<string | null>(embeddingsOptions[0].value);
 
   const [modelPullProgress, setModelPullProgress] = useState<{
-    [key: string]: ProgressData | undefined
+    [key: string]: ProgressData | undefined;
   }>({});
 
   const [serverStatus, setServerStatus] = useState<ServerStatus>(ServerStatus.unknown);
@@ -45,13 +45,16 @@ function App() {
 
   const [isKeepExistingConfigSelected, setIsKeepExistingConfigSelected] = useState(false);
 
-  const getModelStatus = useCallback((model: string | null): ModelStatus | null => {
-    if (model === null) {
-      return null;
-    }
-    const result = modelStatuses.get(getStandardName(model));
-    return result ? result : ModelStatus.unknown;
-  }, [modelStatuses]);
+  const getModelStatus = useCallback(
+    (model: string | null): ModelStatus | null => {
+      if (model === null) {
+        return null;
+      }
+      const result = modelStatuses.get(getStandardName(model));
+      return result ? result : ModelStatus.unknown;
+    },
+    [modelStatuses]
+  );
 
   function requestStatus(): void {
     vscode.postMessage({
@@ -243,7 +246,7 @@ function App() {
           status={getModelStatus(chatModel)}
           options={modelOptions}
           progress={chatModel ? modelPullProgress[chatModel] : undefined}
-          disabled={!enabled}
+          readOnly={true} // Added readOnly prop here
           tooltip="This model will be used for Chat and Tab Completion"
         />
 
@@ -268,7 +271,7 @@ function App() {
           status={getModelStatus(embeddingsModel)}
           options={embeddingsOptions}
           progress={embeddingsModel ? modelPullProgress[embeddingsModel] : undefined}
-          disabled={!enabled}
+          readOnly={true} // Added readOnly prop here
         />
 
         <div className="final-setup-group">
