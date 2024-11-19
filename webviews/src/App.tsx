@@ -29,7 +29,7 @@ function App() {
     { label: 'Keep existing configuration', value: null, info: null }
   ];
 
-  const [tabModel, setTabModel] = useState<string | null>(null); //tabOptions[3].value use 3b by default
+  const [tabModel, setTabModel] = useState<string | null>(modelOptions[0].value); //use dense:2b by default
   const [chatModel, setChatModel] = useState<string | null>(modelOptions[0].value);//use dense:2b by default
   const [embeddingsModel, setEmbeddingsModel] = useState<string | null>(embeddingsOptions[0].value);
 
@@ -236,76 +236,78 @@ function App() {
           </div>
         </div>
 
-        <div className="switch-toggle-wrapper">
-          <label>Model Settings:</label>
-          <div className="switch-toggle">
-            <input 
-              className="switch-toggle-checkbox" 
-              type="checkbox" 
-              id="uiModeSwitch"
-              checked={uiMode === 'advanced'}
-              onChange={() => setUiMode(uiMode === 'simple' ? 'advanced' : 'simple')}
-            />
-            <label className="switch-toggle-label" htmlFor="uiModeSwitch">
-              <span>Simple</span>
-              <span>Advanced</span>
-            </label>
-          </div>
-        </div>
-
-        {uiMode === 'simple' ? (
-          <ModelList
-            className="model-list"
-            label="Granite model"
-            value={chatModel}
-            onChange={(e) => setChatModel(e?.value ?? null)}
-            status={getModelStatus(chatModel)}
-            options={modelOptions}
-            progress={chatModel ? modelPullProgress[chatModel] : undefined}
-            disabled={!enabled}
-            tooltip="This model will be used for Chat and Tab Completion"
-          />
-
-        ) : (
-          <>
+        <div className="modelList-wrapper">
+          {uiMode === 'simple' ? (
             <ModelList
               className="model-list"
-              label="Chat model"
+              label="Granite model"
               value={chatModel}
               onChange={(e) => setChatModel(e?.value ?? null)}
               status={getModelStatus(chatModel)}
               options={modelOptions}
               progress={chatModel ? modelPullProgress[chatModel] : undefined}
               disabled={!enabled}
-              tooltip="This model will be used for Chat"
+              tooltip="This model will be used for Chat and Tab Completion"
             />
 
-            <ModelList
-              className="model-list"
-              label="Tab completion model"
-              value={tabModel}
-              onChange={(e) => setTabModel(e?.value ?? null)}
-              status={getModelStatus(tabModel)}
-              options={tabOptions}
-              progress={tabModel ? modelPullProgress[tabModel] : undefined}
-              disabled={!enabled}
-              tooltip="This model will be used for Tab Completion"
-            />
-          </>
-        )}
+          ) : (
+            <>
+              <ModelList
+                className="model-list"
+                label="Chat model"
+                value={chatModel}
+                onChange={(e) => setChatModel(e?.value ?? null)}
+                status={getModelStatus(chatModel)}
+                options={modelOptions}
+                progress={chatModel ? modelPullProgress[chatModel] : undefined}
+                disabled={!enabled}
+                tooltip="This model will be used for Chat"
+              />
 
-        <ModelList
-          className="model-list"
-          label="Embeddings model"
-          value={embeddingsModel}
-          onChange={(e) => setEmbeddingsModel(e?.value ?? null)}
-          status={getModelStatus(embeddingsModel)}
-          options={embeddingsOptions}
-          progress={embeddingsModel ? modelPullProgress[embeddingsModel] : undefined}
-          disabled={!enabled}
-        />
+              <ModelList
+                className="model-list"
+                label="Tab completion model"
+                value={tabModel}
+                onChange={(e) => setTabModel(e?.value ?? null)}
+                status={getModelStatus(tabModel)}
+                options={tabOptions}
+                progress={tabModel ? modelPullProgress[tabModel] : undefined}
+                disabled={!enabled}
+                tooltip="This model will be used for Tab Completion"
+              />
+            </>
+          )}
+
+          <ModelList
+            className="model-list"
+            label="Embeddings model"
+            value={embeddingsModel}
+            onChange={(e) => setEmbeddingsModel(e?.value ?? null)}
+            status={getModelStatus(embeddingsModel)}
+            options={embeddingsOptions}
+            progress={embeddingsModel ? modelPullProgress[embeddingsModel] : undefined}
+            disabled={!enabled}
+          />
+        </div>
 
         <div className="final-setup-group">
+          <div className="switch-toggle-wrapper">
+            <label>Model Settings:</label>
+            <div className="switch-toggle">
+              <input 
+                className="switch-toggle-checkbox" 
+                type="checkbox" 
+                id="uiModeSwitch"
+                checked={uiMode === 'advanced'}
+                onChange={() => setUiMode(uiMode === 'simple' ? 'advanced' : 'simple')}
+              />
+              <label className="switch-toggle-label" htmlFor="uiModeSwitch">
+                <span>Simple</span>
+                <span>Advanced</span>
+              </label>
+            </div>
+          </div>
+
           <button className="install-button" onClick={handleSetupGraniteClick} disabled={serverStatus !== ServerStatus.started || !enabled || isKeepExistingConfigSelected}>
             Setup Granite
           </button>
@@ -314,7 +316,7 @@ function App() {
 
       <div className="info-message">
         <p>
-          ** To reopen this wizard, open the command palette and run:<strong>Paver: Setup Granite as code assistant</strong>.
+          * To reopen this wizard, open the command palette and run:<strong>Paver: Setup Granite as code assistant</strong>.
         </p>
         <p>
           ** To configure both Chat and Tab Completion separately, choose <strong><i>Advanced</i></strong>. Otherwise, choose <strong><i>Simple</i></strong>

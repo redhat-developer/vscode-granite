@@ -70,8 +70,23 @@ button:disabled {
 }
 
 .final-setup-group {
-  align-self: flex-end;
+  display: flex;
+  align-items: center;
+  width: 100%;
   margin-top: 20px;
+}
+
+.final-setup-group .install-button {
+  min-width: 120px;
+  height: fit-content;
+}
+
+.modelList-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 500px;
 }
 
 .main-wrapper {
@@ -129,7 +144,7 @@ button:disabled {
 .main-wrapper .form-group-wrapper .model-list--label {
   display: flex;
   align-items: center;
-  min-width: 230px;
+  min-width: 200px;
   font-size: 15px;
   font-weight: normal;
 }
@@ -147,9 +162,15 @@ button:disabled {
 
 .main-wrapper .form-group-wrapper .model-list--outer-wrapper {
   display: inline-flex;
+  flex-wrap: wrap;
   vertical-align: middle;
   align-items: baseline;
   padding: 10px 0 0 15px;
+  gap: 5px 0px;
+}
+
+.main-wrapper .form-group-wrapper .model-list {
+  min-width: 270px;
 }
 
 .main-wrapper .form-group-wrapper .model-list>div {
@@ -158,6 +179,7 @@ button:disabled {
 
 .main-wrapper .form-group-wrapper .model-list>div span {
   color: var(--vscode-terminal-ansiWhite);
+
 }
 
 .main-wrapper .form-group-wrapper .info-label {
@@ -199,14 +221,19 @@ button:disabled {
 /* Toggle Switch (with label) */
 .switch-toggle-wrapper {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
   width: 100%;
   margin-bottom: 15px;
 }
 
+.switch-toggle-wrapper>label {
+  font-size: 0.8rem;
+}
+
 .switch-toggle {
-  --width: 130px;
+  --width: 135px;
   --height: 30px;
   --offset: 0px;
   --radius: 35px;
@@ -221,7 +248,7 @@ button:disabled {
   font-weight: 500;
   line-height: normal;
   font-style: normal;
-  margin-left: 5px;
+  margin: 10px 5px 0 0;
 }
 
 .switch-toggle input[type=checkbox] {
@@ -306,10 +333,14 @@ button:disabled {
 /* Don't add CSS below @media query section */
 @media (max-width: 767px) {
 
-  .main-description,
   .info-message,
+  .main-description,
   .main-wrapper .form-group-wrapper {
     width: calc(100% - 50px);
+  }
+
+  .modelList-wrapper {
+    width: 100%;
   }
 }
 
@@ -317,5 +348,9 @@ button:disabled {
   .main-wrapper .form-group-wrapper .model-list--outer-wrapper {
     flex-wrap: wrap;
     gap: 8px 16px;
+  }
+
+  .main-wrapper .form-group-wrapper .model-list {
+    min-width: initial;
   }
 }
