@@ -42,7 +42,7 @@ const DEFAULT_PROVIDER = "ollama";
 
 //See https://github.com/continuedev/continue/blob/51f4d1b48b7e9fb007b08d344d1afdb725b1a970/core/util/paths.ts#L14-L15
 const CONTINUE_GLOBAL_DIR = process.env.CONTINUE_GLOBAL_DIR ?? path.join(os.homedir(), ".continue");
-const CONTINUE_CONFIG_FILE = path.join(CONTINUE_GLOBAL_DIR, "config.json")
+const CONTINUE_CONFIG_FILE = path.join(CONTINUE_GLOBAL_DIR, "config.json");
 
 const baseConfig: Partial<ModelConfig> = {
   provider: DEFAULT_PROVIDER,

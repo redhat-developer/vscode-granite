@@ -78,7 +78,7 @@ describe('App Component', () => {
       command: 'setupGranite',
       data: {
         chatModelId: 'granite3-dense:2b',
-        tabModelId: null,
+        tabModelId: 'granite3-dense:2b',
         embeddingsModelId: 'nomic-embed-text:latest'
       }
     });
@@ -157,7 +157,7 @@ describe('App Component', () => {
       command: 'setupGranite',
       data: {
         chatModelId: 'granite3-dense:2b',
-        tabModelId: null,
+        tabModelId: 'granite3-dense:2b',
         embeddingsModelId: 'nomic-embed-text:latest'
       }
     });
