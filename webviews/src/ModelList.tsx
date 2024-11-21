@@ -137,6 +137,7 @@ const ModelList: React.FC<ModelListProps> = ({ className, label, value, onChange
                         isDisabled={disabled}
                         styles={customStyles}
                         formatOptionLabel={formatOptionLabel}
+                        isSearchable={false} // Disable typing in dropdown
                     />
                     {status !== null && status !== ModelStatus.installed && !progress && <span className='info-label' style={{ display: 'flex', alignItems: 'center' }}> {getStatusLabel(status)}</span>}
                 </div >
