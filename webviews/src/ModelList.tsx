@@ -21,21 +21,9 @@ interface ModelListProps {
     progress?: ProgressData;
     tooltip?: string;
     disabled?: boolean;
-    readOnly?: boolean; // Added readOnly prop
 }
 
-const ModelList: React.FC<ModelListProps> = ({
-    className,
-    label,
-    value,
-    onChange,
-    status,
-    options,
-    progress,
-    tooltip,
-    disabled,
-    readOnly,
-}) => {
+const ModelList: React.FC<ModelListProps> = ({ className, label, value, onChange, status, options, progress, tooltip, disabled }) => {
     const selectHeight = '16px';
     const customStyles = {
         container: (base: any) => ({
@@ -143,27 +131,17 @@ const ModelList: React.FC<ModelListProps> = ({
                     <Select
                         className={className}
                         id={label}
-                        value={options.find((option) => option.value === value)}
-                        onChange={
-                            readOnly ? undefined : (newValue) => onChange(newValue as ModelOption)
-                        } // Prevent changes if readOnly is true
+                        value={options.find(option => option.value === value)}
+                        onChange={(newValue) => onChange(newValue as ModelOption)}
                         options={options}
                         isDisabled={disabled}
-                        isSearchable={!readOnly} // Disable typing in dropdown when readOnly
                         styles={customStyles}
                         formatOptionLabel={formatOptionLabel}
+                        isSearchable={false} // Disable typing in dropdown
                     />
-                    {status !== null && status !== ModelStatus.installed && !progress && (
-                        <span
-                            className='info-label'
-                            style={{ display: 'flex', alignItems: 'center' }}
-                        >
-                            {' '}
-                            {getStatusLabel(status)}
-                        </span>
-                    )}
-                </div>
-            </div>
+                    {status !== null && status !== ModelStatus.installed && !progress && <span className='info-label' style={{ display: 'flex', alignItems: 'center' }}> {getStatusLabel(status)}</span>}
+                </div >
+            </div >
 
             <div className='progress-container'>
                 {progress && (
@@ -172,7 +150,7 @@ const ModelList: React.FC<ModelListProps> = ({
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 
