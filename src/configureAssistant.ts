@@ -183,7 +183,7 @@ export class AiAssistantConfigurator {
       if (currentChatModel) {
         message += ` Now select '${currentChatModel}' from Continue's chat model dropdown.`;
       }
-      vscode.window.showInformationMessage(message);
+      vscode.window.showInformationMessage(message, "");
     }
 
     if (continueOnboardingMightShow) {
