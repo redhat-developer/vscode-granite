@@ -45,6 +45,12 @@ function App() {
 
   const [isKeepExistingConfigSelected, setIsKeepExistingConfigSelected] = useState(false);
 
+  const [buttonTitle, setButtonTitle] = useState('');
+
+  const [recentTabModel, setRecentTabModel] = useState<string | null>(null);
+  const [recentChatModel, setRecentChatModel] = useState<string | null>(null);
+  const [recentEmbeddingsModel, setRecentEmbeddingsModel] = useState<string | null>(null);
+
   const getModelStatus = useCallback((model: string | null): ModelStatus | null => {
     if (model === null) {
       return null;
@@ -85,6 +91,11 @@ function App() {
     });
   }
 
+  function handleSetupGraniteEnableDisable(): boolean {
+    return serverStatus === ServerStatus.started && chatModel === recentChatModel &&
+      embeddingsModel === recentEmbeddingsModel;
+  }
+
   const REFETCH_MODELS_INTERVAL_MS = 1500;
   let ollamaStatusChecker: NodeJS.Timeout | undefined;
 
@@ -122,6 +133,12 @@ function App() {
         setEnabled(!disabled);
         break;
       }
+      case 'recentModels': {
+        setRecentChatModel(payload.data.recentChatModel);
+        setRecentTabModel(payload.data.recentTabModel);
+        setRecentEmbeddingsModel(payload.data.recentEmbeddingModel);
+        break;
+      }
     }
   }, []);
 
@@ -154,6 +171,15 @@ function App() {
       }
     };
   }, [serverStatus, modelStatuses]);
+
+  useEffect(() => {
+    if (serverStatus === ServerStatus.started && ModelStatus.installed === getModelStatus(chatModel) &&
+      ModelStatus.installed === getModelStatus(embeddingsModel)) {
+      setButtonTitle('Update Granite');
+    } else {
+      setButtonTitle('Setup Granite');
+    }
+  }), [buttonTitle];
 
   const getServerIconType = useCallback((status: ServerStatus): StatusValue => {
     switch (status) {
@@ -272,8 +298,9 @@ function App() {
         />
 
         <div className="final-setup-group">
-          <button className="install-button" onClick={handleSetupGraniteClick} disabled={serverStatus !== ServerStatus.started || !enabled || isKeepExistingConfigSelected}>
-            Setup Granite
+          <button className="install-button" onClick={handleSetupGraniteClick}
+            disabled={handleSetupGraniteEnableDisable() || serverStatus !== ServerStatus.started}>
+            {buttonTitle}
           </button>
         </div>
       </div>
