@@ -63,6 +63,12 @@ function App() {
     useState(false);
   const [uiMode, setUiMode] = useState<"simple" | "advanced">("simple");
 
+  const [buttonTitle, setButtonTitle] = useState('');
+
+  const [recentTabModel, setRecentTabModel] = useState<string | null>(null);
+  const [recentChatModel, setRecentChatModel] = useState<string | null>(null);
+  const [recentEmbeddingsModel, setRecentEmbeddingsModel] = useState<string | null>(null);
+
   const getModelStatus = useCallback(
     (model: string | null): ModelStatus | null => {
       if (model === null) {
@@ -107,6 +113,12 @@ function App() {
     });
   }
 
+  function handleSetupGraniteEnableDisable(): boolean {
+    const handleSimpleMode = serverStatus === ServerStatus.started && chatModel === recentChatModel &&
+      embeddingsModel === recentEmbeddingsModel;
+    return uiMode === "advanced" ? handleSimpleMode && tabModel === recentTabModel : handleSimpleMode;
+  }
+
   const REFETCH_MODELS_INTERVAL_MS = 1500;
   let ollamaStatusChecker: NodeJS.Timeout | undefined;
 
@@ -142,6 +154,12 @@ function App() {
         const disabled = payload.data.installing;
         console.log(`${disabled ? "dis" : "en"}abling components`);
         setEnabled(!disabled);
+        break;
+      }
+      case 'recentModels': {
+        setRecentChatModel(payload.data.recentChatModel);
+        setRecentTabModel(payload.data.recentTabModel);
+        setRecentEmbeddingsModel(payload.data.recentEmbeddingModel);
         break;
       }
     }
@@ -184,6 +202,17 @@ function App() {
       }
     };
   }, [serverStatus, modelStatuses]);
+
+  useEffect(() => {
+    if (serverStatus === ServerStatus.started &&
+      ModelStatus.installed === getModelStatus(chatModel) &&
+      ModelStatus.installed === getModelStatus(tabModel) &&
+      ModelStatus.installed === getModelStatus(embeddingsModel)) {
+      setButtonTitle('Update Granite');
+    } else {
+      setButtonTitle('Setup Granite');
+    }
+  }), [buttonTitle];
 
   const getServerIconType = useCallback(
     (status: ServerStatus): StatusValue => {
@@ -229,9 +258,9 @@ function App() {
 
     uiMode === "advanced"
       ? (checkKeepExistingConfig =
-          chatModel === null && tabModel === null && embeddingsModel === null)
+        chatModel === null && tabModel === null && embeddingsModel === null)
       : (checkKeepExistingConfig =
-          chatModel === null && embeddingsModel === null);
+        chatModel === null && embeddingsModel === null);
 
     setIsKeepExistingConfigSelected(checkKeepExistingConfig);
     setUiMode(uiMode);
@@ -291,12 +320,12 @@ function App() {
                   {installationModes.some(
                     (mode) => mode.supportsRefresh === true
                   ) && (
-                    <p>
-                      <span>
-                        This page will refresh once Ollama is installed.
-                      </span>
-                    </p>
-                  )}
+                      <p>
+                        <span>
+                          This page will refresh once Ollama is installed.
+                        </span>
+                      </p>
+                    )}
                   {installationModes.map((mode) => (
                     <button
                       key={mode.id}
@@ -387,25 +416,24 @@ function App() {
               </label>
             </div>
           </div>
-          {}
+          { }
           <button
             className="install-button"
             onClick={handleSetupGraniteClick}
-            disabled={
-              serverStatus !== ServerStatus.started ||
-              !enabled ||
-              isKeepExistingConfigSelected
+            disabled={handleSetupGraniteEnableDisable() ||
+              serverStatus !== ServerStatus.started
             }
+            title={handleSetupGraniteEnableDisable() ? 'No configuration changes detected' : ''}
           >
-            Setup Granite
+            {buttonTitle}
           </button>
         </div>
       </div>
 
       <div className="info-message">
         <p>
-            * To reopen this wizard, open the command palette and run:
-            <p style={{ margin: 2, paddingLeft: 10 }}><strong>Paver: Setup Granite as code assistant</strong></p>
+          * To reopen this wizard, open the command palette and run:
+          <p style={{ margin: 2, paddingLeft: 10 }}><strong>Paver: Setup Granite as code assistant</strong></p>
         </p>
         {uiMode === "simple" ? (
           <p>
