@@ -221,11 +221,21 @@ function App() {
   );
 
   useEffect(() => {
-    const checkKeepExistingConfig =
-      chatModel === null && tabModel === null && embeddingsModel === null;
+    advancedToggler(uiMode);
+  });
+
+  function advancedToggler(uiMode: any) {
+    let checkKeepExistingConfig;
+
+    uiMode === "advanced"
+      ? (checkKeepExistingConfig =
+          chatModel === null && tabModel === null && embeddingsModel === null)
+      : (checkKeepExistingConfig =
+          chatModel === null && embeddingsModel === null);
 
     setIsKeepExistingConfigSelected(checkKeepExistingConfig);
-  }, [chatModel, tabModel, embeddingsModel]);
+    setUiMode(uiMode);
+  }
 
   return (
     <main className="main-wrapper">
@@ -354,6 +364,7 @@ function App() {
               embeddingsModel ? modelPullProgress[embeddingsModel] : undefined
             }
             disabled={!enabled}
+            tooltip="This model will be used to compute embeddings"
           />
         </div>
 
@@ -367,7 +378,7 @@ function App() {
                 id="uiModeSwitch"
                 checked={uiMode === "advanced"}
                 onChange={() =>
-                  setUiMode(uiMode === "simple" ? "advanced" : "simple")
+                  advancedToggler(uiMode === "simple" ? "advanced" : "simple")
                 }
               />
               <label className="switch-toggle-label" htmlFor="uiModeSwitch">
@@ -376,7 +387,7 @@ function App() {
               </label>
             </div>
           </div>
-
+          {}
           <button
             className="install-button"
             onClick={handleSetupGraniteClick}
@@ -393,19 +404,15 @@ function App() {
 
       <div className="info-message">
         <p>
-          * To reopen this wizard, open the command palette and run:
-          <strong>Paver: Setup Granite as code assistant</strong>.
+            * To reopen this wizard, open the command palette and run:
+            <p style={{ margin: 2, paddingLeft: 10 }}><strong>Paver: Setup Granite as code assistant</strong></p>
         </p>
-        <p>
-          ** To configure both Chat and Tab Completion separately, choose{" "}
-          <strong>
-            <i>Advanced</i>
-          </strong>
-          . Otherwise, choose{" "}
-          <strong>
-            <i>Simple</i>
-          </strong>
-        </p>
+        {uiMode === "simple" ? (
+          <p>
+            ** To configure both Chat and Tab Completion separately, choose
+            <strong><i> Advanced</i></strong>.
+          </p>
+        ) : <></>}
       </div>
     </main>
   );
