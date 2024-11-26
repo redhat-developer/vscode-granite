@@ -85,6 +85,12 @@ function App() {
     });
   }
 
+  function handleStartOllama(): void {
+    vscode.postMessage({
+      command: "startOllama"
+    });
+  }
+
   const REFETCH_MODELS_INTERVAL_MS = 1500;
   let ollamaStatusChecker: NodeJS.Timeout | undefined;
 
@@ -232,6 +238,19 @@ function App() {
                 ))}
               </div>
             )}
+
+            {
+              // show start ollama button when server stopped
+              serverStatus === ServerStatus.stopped && (
+                <button
+                  className="install-button"
+                  onClick={() => handleStartOllama()}
+                >
+                  Start Ollama
+                </button>
+              )
+            }
+
           </div>
         </div>
 
