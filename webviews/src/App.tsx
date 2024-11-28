@@ -102,8 +102,14 @@ function App() {
       data: {
         tabModelId: UImodeTabModel,
         chatModelId: chatModel,
-        embeddingsModelId: embeddingsModel,
-      },
+        embeddingsModelId: embeddingsModel
+      }
+    });
+  }
+
+  function handleStartOllama(): void {
+    vscode.postMessage({
+      command: "startOllama"
     });
   }
 
@@ -229,9 +235,9 @@ function App() {
 
     uiMode === "advanced"
       ? (checkKeepExistingConfig =
-          chatModel === null && tabModel === null && embeddingsModel === null)
+        chatModel === null && tabModel === null && embeddingsModel === null)
       : (checkKeepExistingConfig =
-          chatModel === null && embeddingsModel === null);
+        chatModel === null && embeddingsModel === null);
 
     setIsKeepExistingConfigSelected(checkKeepExistingConfig);
     setUiMode(uiMode);
@@ -291,12 +297,12 @@ function App() {
                   {installationModes.some(
                     (mode) => mode.supportsRefresh === true
                   ) && (
-                    <p>
-                      <span>
-                        This page will refresh once Ollama is installed.
-                      </span>
-                    </p>
-                  )}
+                      <p>
+                        <span>
+                          This page will refresh once Ollama is installed.
+                        </span>
+                      </p>
+                    )}
                   {installationModes.map((mode) => (
                     <button
                       key={mode.id}
@@ -309,6 +315,19 @@ function App() {
                   ))}
                 </div>
               )}
+
+            {
+              // show start ollama button when server stopped
+              serverStatus === ServerStatus.stopped && (
+                <button
+                  className="install-button"
+                  onClick={() => handleStartOllama()}
+                >
+                  Start Ollama
+                </button>
+              )
+            }
+
           </div>
         </div>
 
@@ -387,7 +406,7 @@ function App() {
               </label>
             </div>
           </div>
-          {}
+          { }
           <button
             className="install-button"
             onClick={handleSetupGraniteClick}
@@ -404,8 +423,8 @@ function App() {
 
       <div className="info-message">
         <p>
-            * To reopen this wizard, open the command palette and run:
-            <p style={{ margin: 2, paddingLeft: 10 }}><strong>Paver: Setup Granite as code assistant</strong></p>
+          * To reopen this wizard, open the command palette and run:
+          <p style={{ margin: 2, paddingLeft: 10 }}><strong>Paver: Setup Granite as code assistant</strong></p>
         </p>
         {uiMode === "simple" ? (
           <p>
