@@ -360,6 +360,17 @@ export class SetupGranitePage {
         tabModel,
         embeddingsModel
       );
+
+      //set recent used models
+      webview.postMessage({
+        command: "recentModels",
+        data: {
+          recentChatModel: chatModel,
+          recentTabModel: tabModel,
+          recentEmbeddingModel: embeddingsModel
+        },
+      });
+
       console.log("Granite AI-Assistant setup complete");
       await Telemetry.send("paver.setup.success", {
         chatModelId: chatModel ?? 'none',
@@ -371,6 +382,17 @@ export class SetupGranitePage {
       if (error instanceof CancellationError || error?.name === "Canceled") {
         return;
       }
+
+      //set recent used models to null when error
+      webview.postMessage({
+        command: "recentModels",
+        data: {
+          recentChatModel: null,
+          recentTabModel: null,
+          recentEmbeddingModel: null
+        },
+      });
+
       // Generic error handling for all errors
       await Telemetry.send("paver.setup.error", {
         error: error?.message ?? 'unknown error',
