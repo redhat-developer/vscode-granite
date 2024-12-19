@@ -117,8 +117,14 @@ function App() {
       data: {
         tabModelId: UImodeTabModel,
         chatModelId: chatModel,
-        embeddingsModelId: embeddingsModel,
-      },
+        embeddingsModelId: embeddingsModel
+      }
+    });
+  }
+
+  function handleStartOllama(): void {
+    vscode.postMessage({
+      command: "startOllama"
     });
   }
 
@@ -337,6 +343,19 @@ function App() {
                   ))}
                 </div>
               )}
+
+            {
+              // show start ollama button when server stopped
+              serverStatus === ServerStatus.stopped && (
+                <button
+                  className="install-button"
+                  onClick={() => handleStartOllama()}
+                >
+                  Start Ollama
+                </button>
+              )
+            }
+
           </div>
         </div>
         {(diskSpaceCheck.warnings.length > 0 || diskSpaceCheck.errors.length > 0) && (
